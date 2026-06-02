@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lexikon — Magyar Szójátékok</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:       #080b12;
+    --bg-mid:        #0e1420;
+    --bg-card:       rgba(255,255,255,0.04);
+    --glass-border:  rgba(255,255,255,0.08);
+    --glass-border-focus: rgba(168,148,255,0.4);
+    --accent:        #a894ff;
+    --accent-dim:    rgba(168,148,255,0.15);
+    --accent-glow:   rgba(168,148,255,0.25);
+    --gold:          #c9a96e;
+    --gold-dim:      rgba(201,169,110,0.12);
+    --text-primary:  #e8e4f0;
+    --text-secondary:#9890a8;
+    --text-tertiary: #5a5468;
+    --danger:        rgba(255,100,100,0.6);
+    --yellow:        #f5c842;
+    --yellow-dim:    rgba(245,200,66,0.15);
+    --radius:        12px;
+    --radius-lg:     18px;
+    --transition:    0.25s cubic-bezier(0.4,0,0.2,1);
+    --header-h:      56px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30vh; left: -20vw;
+    width: 70vw; height: 70vh;
+    background: radial-gradient(ellipse, rgba(100,80,180,0.12) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20vh; right: -15vw;
+    width: 60vw; height: 60vh;
+    background: radial-gradient(ellipse, rgba(160,120,60,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .noise {
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.5;
+  }
+
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: rgba(8,11,18,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity var(--transition);
+  }
+  .topbar-logo:hover { opacity: 0.8; }
+  .topbar-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .topbar-logo-text {
+    display: flex; flex-direction: column; line-height: 1.1;
+  }
+  .topbar-logo-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #e8e4f0 30%, #a894ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.01em;
+  }
+  .topbar-logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--gold);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    -webkit-text-fill-color: var(--gold);
+  }
+
+  .topbar-spacer { flex: 1; }
+
+  .topbar-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,80,80,0.08);
+    border: 1px solid rgba(255,80,80,0.2);
+    border-radius: var(--radius);
+    color: rgba(255,120,120,0.8);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .topbar-clear-btn:hover, .topbar-clear-btn:active {
+    background: rgba(255,80,80,0.15);
+    border-color: rgba(255,80,80,0.4);
+    color: rgba(255,140,140,1);
+  }
+  .topbar-clear-btn .btn-x { font-size: 13px; }
+
+  #screen-main, #screen-games {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    min-height: 100vh;
+    transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    will-change: opacity, transform;
+  }
+  #screen-main.hidden {
+    opacity: 0;
+    transform: translateX(-60px);
+    pointer-events: none;
+  }
+  #screen-games {
+    opacity: 0;
+    transform: translateX(60px);
+    pointer-events: none;
+  }
+  #screen-games.visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: calc(var(--header-h) + 28px) 20px 100px;
+  }
+
+  .steps-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 36px;
+    animation: fadeDown 0.8s 0.1s ease both;
+  }
+  .step-dot {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-dot-circle {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    transition: var(--transition);
+    backdrop-filter: blur(8px);
+  }
+  .step-dot.active .step-dot-circle {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .step-dot.done .step-dot-circle {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--gold);
+  }
+  .step-dot-label {
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .step-dot.active .step-dot-label { color: var(--accent); }
+  .step-dot.done .step-dot-label { color: var(--gold); }
+  .step-line {
+    flex: 1; height: 1px;
+    background: var(--glass-border);
+    max-width: 60px;
+    margin: 0 4px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+  }
+  .step-line.done { background: linear-gradient(90deg, var(--gold), var(--accent)); opacity: 0.4; }
+
+  .section {
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .section:nth-child(1) { animation-delay: 0.12s; }
+  .section:nth-child(2) { animation-delay: 0.20s; }
+  .section:nth-child(3) { animation-delay: 0.28s; }
+  .section:nth-child(4) { animation-delay: 0.36s; }
+
+  .section-label {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+  }
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--glass-border), transparent);
+    margin-bottom: 18px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 20px 20px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .card:hover { border-color: rgba(255,255,255,0.12); }
+
+  input[type="text"] {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    width: 100%;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+  input[type="text"]:focus {
+    border-color: var(--glass-border-focus);
+    background: rgba(168,148,255,0.04);
+    box-shadow: 0 0 20px rgba(168,148,255,0.1);
+  }
+  input[type="text"]::placeholder { color: var(--text-tertiary); }
+
+  .length-row {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .length-stepper {
+    display: flex; align-items: center; gap: 0;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px);
+  }
+  .num-btn {
+    width: 52px; height: 56px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 22px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+    user-select: none;
+    -webkit-user-select: none;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .num-btn:hover { color: var(--accent); background: var(--accent-dim); }
+  .num-btn:active { background: rgba(168,148,255,0.25); }
+
+  .len-display {
+    min-width: 64px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--text-primary);
+    padding: 0 4px;
+    border-left: 1px solid var(--glass-border);
+    border-right: 1px solid var(--glass-border);
+    height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: default;
+    select: none;
+  }
+
+  .length-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+  }
+
+  #slots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .slot-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  .slot-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.05em;
+  }
+  .slot-input {
+    width: 44px !important;
+    text-align: center !important;
+    text-transform: uppercase;
+    font-size: 18px !important;
+    font-weight: 500;
+    padding: 10px 4px !important;
+    letter-spacing: 0.05em;
+    touch-action: manipulation;
+  }
+  .slot-input.filled {
+    border-color: rgba(80,200,120,0.55) !important;
+    background: rgba(61,122,86,0.18) !important;
+    color: #5fd68a !important;
+    box-shadow: 0 0 10px rgba(80,200,120,0.12);
+  }
+  .slots-empty-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    padding: 8px 0;
+    letter-spacing: 0.03em;
+  }
+
+  .filter-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 8px; }
+  .filter-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+  }
+  .pills-row {
+    display: flex; flex-wrap: wrap; gap: 4px; min-height: 22px;
+  }
+  .pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 2px 8px;
+    letter-spacing: 0.05em;
+    animation: popIn 0.2s ease;
+  }
+  .pill-excluded { background: rgba(255,80,80,0.12); color: rgba(255,120,120,0.9); border: 1px solid rgba(255,80,80,0.2); }
+  .pill-required { background: rgba(100,220,160,0.1); color: rgba(100,220,160,0.9); border: 1px solid rgba(100,220,160,0.2); }
+  .pill-yellow   { background: rgba(245,200,66,0.13); color: rgba(245,200,66,0.9); border: 1px solid rgba(245,200,66,0.25); }
+
+  .yellow-filter-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+  }
+  .yellow-filter-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .yellow-badge {
+    display: inline-block;
+    width: 12px; height: 12px;
+    background: var(--yellow);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  #yellow-slots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .yellow-slot-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  .yellow-slot-input {
+    width: 52px !important;
+    text-align: center !important;
+    text-transform: uppercase;
+    font-size: 13px !important;
+    font-weight: 500;
+    padding: 9px 3px !important;
+    letter-spacing: 0.04em;
+    touch-action: manipulation;
+    border-color: rgba(245,200,66,0.25) !important;
+    background: rgba(245,200,66,0.04) !important;
+  }
+  .yellow-slot-input.has-value {
+    border-color: rgba(245,200,66,0.55) !important;
+    background: rgba(245,200,66,0.10) !important;
+    color: var(--yellow) !important;
+    box-shadow: 0 0 12px rgba(245,200,66,0.12);
+  }
+  .yellow-slot-input:focus {
+    border-color: rgba(245,200,66,0.7) !important;
+    box-shadow: 0 0 20px rgba(245,200,66,0.15) !important;
+    background: rgba(245,200,66,0.08) !important;
+  }
+
+  .search-btn-wrap { padding: 4px 0 6px; }
+  .search-btn {
+    background: linear-gradient(135deg, rgba(168,148,255,0.15), rgba(201,169,110,0.1));
+    border: 1px solid rgba(168,148,255,0.3);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 15px 44px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .search-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(168,148,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .search-btn:hover::before { opacity: 1; }
+  .search-btn:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 32px var(--accent-glow), 0 4px 24px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+  }
+  .search-btn:active { transform: translateY(0); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-icon { margin-left: 8px; display: inline-block; transition: transform var(--transition); }
+  .search-btn:hover .btn-icon { transform: translateX(3px); }
+
+  .loading-bar {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin-bottom: 14px;
+  }
+  .loading-bar.active { animation: loadBar 1.2s ease infinite; }
+
+  .results-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .results-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  .filter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  .results-search-wrap { margin-bottom: 14px; position: relative; }
+  .results-search-wrap input { padding-left: 34px; }
+  .results-search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .words-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .word-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    animation: chipIn 0.3s ease both;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .word-chip::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent-dim), transparent);
+    opacity: 0; transition: opacity var(--transition);
+  }
+  .word-chip:hover {
+    border-color: rgba(168,148,255,0.35);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+  .word-chip:hover::before { opacity: 1; }
+  .word-chip span.match { color: var(--accent); font-weight: 500; }
+  .word-chip span.pos-match { color: var(--gold); }
+  .word-chip span.yellow-match { color: var(--yellow); font-weight: 500; }
+
+  .tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: #1a1f2e;
+    border: 1px solid rgba(168,148,255,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 180px;
+    max-width: 240px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .word-chip:hover .tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .tooltip-cat {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tooltip-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: normal;
+    line-height: 1.4;
+  }
+  .tooltip-arrow {
+    position: absolute;
+    bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 8px; height: 8px;
+    background: #1a1f2e;
+    border-right: 1px solid rgba(168,148,255,0.25);
+    border-bottom: 1px solid rgba(168,148,255,0.25);
+  }
+
+  .cat-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .truncate-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+    margin-top: 12px;
+    letter-spacing: 0.03em;
+  }
+  .no-results {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--text-tertiary);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 300;
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(168,148,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1a1f2e;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 12px 22px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    z-index: 600;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .games-app {
+    position: relative; z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: calc(var(--header-h) + 36px) 20px 100px;
+  }
+
+  .games-header {
+    margin-bottom: 40px;
+    animation: fadeDown 0.7s ease both;
+  }
+  .games-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  .games-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 300;
+    background: linear-gradient(135deg, #e8e4f0 30%, #a894ff 70%, #c9a96e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+  .games-sub {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 24px 22px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease both;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .game-card:nth-child(1) { animation-delay: 0.1s; }
+  .game-card:nth-child(2) { animation-delay: 0.18s; }
+  .game-card:nth-child(3) { animation-delay: 0.26s; }
+  .game-card:nth-child(4) { animation-delay: 0.34s; }
+
+  .game-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--card-glow, rgba(168,148,255,0.08)), transparent);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .game-card:hover::before, .game-card:active::before { opacity: 1; }
+  .game-card:hover {
+    border-color: var(--card-border, rgba(168,148,255,0.3));
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .game-card:active { transform: translateY(0); }
+
+  .game-icon {
+    font-size: 36px;
+    margin-bottom: 14px;
+    display: block;
+    line-height: 1;
+  }
+  .game-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+  .game-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .game-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.55;
+  }
+  .game-coming {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+  }
+  .game-coming-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 2s ease infinite;
+  }
+
+  .games-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 32px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .games-back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .topbar-games-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(168,148,255,0.3);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .topbar-games-btn:hover, .topbar-games-btn:active {
+    background: rgba(168,148,255,0.25);
+    border-color: var(--accent);
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes chipIn {
+    from { opacity: 0; transform: scale(0.92) translateY(4px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes loadBar {
+    0%   { width: 0%; margin-left: 0; }
+    50%  { width: 60%; margin-left: 20%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  @media (max-width: 480px) {
+    :root { --header-h: 50px; }
+
+    .topbar { padding: 0 10px; gap: 6px; }
+    .topbar-logo-sub { display: none; }
+    .topbar-logo-main { font-size: 15px; }
+    .topbar-logo-icon { width: 26px; height: 26px; font-size: 12px; border-radius: 6px; }
+    .topbar-clear-btn { padding: 6px 8px; font-size: 10px; gap: 3px; }
+    .topbar-games-btn { padding: 6px 8px; font-size: 10px; }
+
+    .app { padding: calc(var(--header-h) + 14px) 12px 72px; }
+    .games-app { padding: calc(var(--header-h) + 14px) 12px 72px; }
+
+    .steps-track { gap: 0; margin-bottom: 24px; }
+    .step-line { max-width: 28px; }
+    .step-dot-circle { width: 26px; height: 26px; font-size: 9px; }
+    .step-dot-label { font-size: 7px; letter-spacing: 0.03em; }
+
+    .section { margin-bottom: 22px; }
+    .section-title { font-size: 15px; }
+    .section-divider { margin-bottom: 12px; }
+    .card { padding: 14px 14px; }
+
+    .num-btn { width: 44px; height: 48px; font-size: 20px; }
+    .len-display { height: 48px; font-size: 20px; min-width: 50px; }
+
+    #slots-grid { gap: 5px; }
+    .slot-input { width: 36px !important; font-size: 15px !important; padding: 8px 2px !important; }
+    #yellow-slots-grid { gap: 5px; }
+    .yellow-slot-input { width: 44px !important; font-size: 11px !important; padding: 7px 2px !important; }
+
+    .filter-row { grid-template-columns: 1fr; gap: 12px; }
+    .filter-label { font-size: 9px; }
+    input[type="text"] { font-size: 13px; padding: 10px 12px; }
+
+    .search-btn { padding: 12px 24px; font-size: 16px; width: 100%; }
+
+    .games-grid { grid-template-columns: 1fr; gap: 10px; }
+    .game-card { padding: 18px 16px; }
+    .game-icon { font-size: 28px; margin-bottom: 10px; }
+    .game-name { font-size: 17px; }
+
+    .words-grid { gap: 6px; }
+    .word-chip { padding: 7px 10px; font-size: 11px; }
+    .tooltip { min-width: 150px; max-width: 190px; font-size: 11px; }
+  }
+
+  @media (max-width: 375px) {
+    :root { --header-h: 48px; }
+    .app { padding: calc(var(--header-h) + 12px) 10px 68px; }
+    .num-btn { width: 40px; height: 44px; }
+    .len-display { height: 44px; font-size: 18px; min-width: 46px; }
+    #slots-grid { gap: 4px; }
+    .slot-input { width: 34px !important; font-size: 14px !important; }
+    #yellow-slots-grid { gap: 4px; }
+    .yellow-slot-input { width: 40px !important; font-size: 10px !important; }
+    .topbar-clear-btn span:not(.btn-x) { display: none; }
+    .topbar-games-btn span:not(:first-child) { display: none; }
+    .steps-track { margin-bottom: 18px; }
+    .step-dot-label { display: none; }
+    .section-num { font-size: 9px; padding: 2px 6px; }
+  }
+
+  @media (max-width: 360px) {
+    .slot-input { width: 32px !important; font-size: 13px !important; }
+    .yellow-slot-input { width: 38px !important; }
+    .num-btn { width: 38px; }
+    .topbar-logo-text { display: none; }
+  }
+
+  #screen-wordle {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    min-height: 100vh;
+    opacity: 0;
+    transform: translateY(40px);
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    will-change: opacity, transform;
+  }
+  #screen-wordle.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  .wordle-app {
+    position: relative; z-index: 1;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: calc(var(--header-h) + 16px) 16px 152px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100svh;
+  }
+
+  .wordle-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 8px;
+  }
+  .wordle-back-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    flex-shrink: 0;
+  }
+  .wordle-back-btn:hover, .wordle-back-btn:active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .wordle-title-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    flex: 1; min-width: 0;
+  }
+  .wordle-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+  .wordle-title-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    background: linear-gradient(135deg, #e8e4f0 30%, #7fff9f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.02em;
+  }
+  .wordle-new-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(100,220,160,0.08);
+    border: 1px solid rgba(100,220,160,0.25);
+    border-radius: var(--radius);
+    color: rgba(100,220,160,0.85);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .wordle-new-btn:hover, .wordle-new-btn:active {
+    background: rgba(100,220,160,0.15);
+    border-color: rgba(100,220,160,0.5);
+  }
+
+  .wordle-len-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .wordle-len-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .wordle-len-chips {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .wordle-len-chip {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .wordle-len-chip:hover { border-color: rgba(100,220,160,0.4); color: rgba(100,220,160,0.8); }
+  .wordle-len-chip.active {
+    border-color: rgba(100,220,160,0.6);
+    background: rgba(100,220,160,0.1);
+    color: rgba(100,220,160,1);
+    box-shadow: 0 0 14px rgba(100,220,160,0.15);
+  }
+
+  .wordle-status {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+    min-height: 20px;
+  }
+  #wordle-status-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .wordle-grid-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .wordle-grid {
+    display: grid;
+    gap: 6px;
+  }
+
+  .wordle-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .wordle-cell {
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    transition: border-color 0.15s ease, background 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wordle-cell.typed {
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.06);
+    animation: cellPop 0.12s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .wordle-cell.correct {
+    border-color: transparent;
+    background: #3d7a56;
+    color: #fff;
+  }
+  .wordle-cell.present {
+    border-color: transparent;
+    background: #8a6f1e;
+    color: #fff;
+  }
+  .wordle-cell.absent {
+    border-color: transparent;
+    background: rgba(255,255,255,0.07);
+    color: var(--text-tertiary);
+  }
+
+  .wordle-cell.flip {
+    animation: cellFlip 0.5s ease forwards;
+  }
+
+  .wordle-row.shake {
+    animation: rowShake 0.4s cubic-bezier(0.36,0.07,0.19,0.97);
+  }
+
+  .wordle-cell.bounce {
+    animation: cellBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+
+  .wordle-msg {
+    position: fixed;
+    top: calc(var(--header-h) + 80px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(30, 36, 54, 0.96);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius);
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 400;
+    white-space: nowrap;
+    backdrop-filter: blur(16px);
+    text-align: center;
+  }
+  .wordle-msg.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .wordle-result {
+    width: 100%;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    text-align: center;
+    animation: fadeUp 0.5s ease both;
+  }
+  .wordle-result-emoji { font-size: 36px; margin-bottom: 10px; display: block; }
+  .wordle-result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #e8e4f0, #7fff9f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .wordle-result-title.lose {
+    background: linear-gradient(135deg, #e8e4f0, #ff9494);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .wordle-result-word {
+    font-family: 'DM Mono', monospace;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .wordle-result-stat {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+  }
+  .wordle-result-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(100,220,160,0.1);
+    border: 1px solid rgba(100,220,160,0.35);
+    border-radius: var(--radius);
+    color: rgba(100,220,160,0.9);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .wordle-result-btn:hover, .wordle-result-btn:active {
+    background: rgba(100,220,160,0.18);
+    border-color: rgba(100,220,160,0.6);
+  }
+
+  .wordle-keyboard {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 8px max(20px, env(safe-area-inset-bottom, 20px));
+    background: rgba(8,11,18,0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    z-index: 300;
+    display: none;
+  }
+  #screen-wordle.visible .wordle-keyboard { display: block; }
+
+  .wkey-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .wkey {
+    height: 52px;
+    min-width: 32px;
+    flex: 1;
+    max-width: 42px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.07);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    text-transform: uppercase;
+    padding: 0 4px;
+  }
+  .wkey:active { transform: scale(0.92); }
+
+  .wkey-wide {
+    min-width: 52px;
+    max-width: 58px;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+
+  .wkey.correct {
+    background: #3d7a56;
+    border-color: #3d7a56;
+    color: #fff;
+  }
+  .wkey.present {
+    background: #8a6f1e;
+    border-color: #8a6f1e;
+    color: #fff;
+  }
+  .wkey.absent {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.06);
+    color: var(--text-tertiary);
+  }
+
+  @keyframes cellPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes cellFlip {
+    0%   { transform: rotateX(0deg); }
+    45%  { transform: rotateX(90deg); }
+    55%  { transform: rotateX(90deg); }
+    100% { transform: rotateX(0deg); }
+  }
+  @keyframes rowShake {
+    0%, 100% { transform: translateX(0); }
+    15%  { transform: translateX(-6px); }
+    30%  { transform: translateX(6px); }
+    45%  { transform: translateX(-5px); }
+    60%  { transform: translateX(5px); }
+    75%  { transform: translateX(-3px); }
+    90%  { transform: translateX(3px); }
+  }
+  @keyframes cellBounce {
+    0%   { transform: translateY(0); }
+    30%  { transform: translateY(-16px); }
+    60%  { transform: translateY(-8px); }
+    80%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    .wordle-app { padding: calc(var(--header-h) + 8px) 8px 148px; }
+    .wordle-header { margin-bottom: 10px; }
+    .wordle-back-btn, .wordle-new-btn { font-size: 10px; padding: 7px 10px; }
+    .wordle-title-text { font-size: 19px; }
+    .wordle-eyebrow { font-size: 7px; }
+    .wordle-len-row { margin-bottom: 8px; gap: 7px; }
+    .wordle-len-label { font-size: 9px; }
+    .wordle-len-chip { width: 32px; height: 32px; font-size: 13px; border-radius: 8px; }
+    .wordle-status { margin-bottom: 8px; }
+    #wordle-status-text { font-size: 9px; }
+    .wordle-grid-wrap { margin-bottom: 10px; }
+    .wordle-keyboard { padding: 8px 5px env(safe-area-inset-bottom, 14px); }
+    .wkey { height: 46px; min-width: 28px; font-size: 12px; border-radius: 7px; }
+    .wkey-wide { min-width: 44px; max-width: 50px; font-size: 10px; }
+    .wkey-row { gap: 4px; margin-bottom: 4px; }
+    .wordle-result { padding: 16px 18px; }
+    .wordle-result-emoji { font-size: 28px; margin-bottom: 8px; }
+    .wordle-result-title { font-size: 18px; }
+    .wordle-result-word { font-size: 20px; }
+  }
+
+  @media (max-width: 375px) {
+    .wordle-app { padding: calc(var(--header-h) + 6px) 6px 146px; }
+    .wkey { height: 43px; min-width: 25px; font-size: 11px; }
+    .wkey-wide { min-width: 40px; font-size: 9px; }
+    .wkey-row { gap: 3px; }
+    .wordle-len-chip { width: 30px; height: 30px; font-size: 12px; }
+    .wordle-header { gap: 4px; }
+    .wordle-back-btn, .wordle-new-btn { font-size: 9px; padding: 6px 8px; }
+  }
+
+  @media (max-width: 360px) {
+    .wkey { height: 41px; min-width: 23px; font-size: 10px; }
+    .wkey-wide { min-width: 38px; font-size: 8px; }
+    .wkey-row { gap: 3px; }
+    .wordle-keyboard { padding: 6px 4px 12px; }
+  }
+
+  .info-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    vertical-align: middle;
+    flex-shrink: 0;
+    transition: color var(--transition);
+  }
+  .info-btn:hover, .info-btn:focus { color: var(--accent); outline: none; }
+  .info-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    background: #1a1f2e;
+    border: 1px solid rgba(168,148,255,0.3);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    transform: translateX(-50%) translateY(4px);
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .info-tooltip em { font-style: italic; color: var(--yellow); }
+  .info-tooltip strong { font-weight: 600; color: var(--text-primary); }
+  .info-btn:hover .info-tooltip,
+  .info-btn:focus .info-tooltip,
+  .info-btn.open .info-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  @media (max-width: 480px) {
+    .info-tooltip { width: 200px; left: 0; transform: translateX(-10px) translateY(4px); }
+    .info-btn:hover .info-tooltip,
+    .info-btn:focus .info-tooltip,
+    .info-btn.open .info-tooltip { transform: translateX(-10px) translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav class="topbar" id="topbar">
+  <div class="topbar-logo" onclick="goHome()" title="Lexikon — Főoldal">
+    <div class="topbar-logo-icon">✦</div>
+    <div class="topbar-logo-text">
+      <span class="topbar-logo-main">Lexikon</span>
+      <span class="topbar-logo-sub">Magyar Szójátékok</span>
+    </div>
+  </div>
+
+  <div class="topbar-spacer"></div>
+
+  <button class="topbar-games-btn" id="topbar-games-btn" onclick="showGames()" title="Játékok">
+    🎮 <span>Játékok</span>
+  </button>
+
+  <button class="topbar-clear-btn" onclick="clearAll()" title="Mindent töröl">
+    <span class="btn-x">✕</span>
+    <span>Töröl</span>
+  </button>
+</nav>
+
+<div id="screen-main">
+  <div class="app">
+    <div class="steps-track" id="steps-track">
+      <div class="step-dot active" onclick="scrollTo(0,0)">
+        <div class="step-dot-circle">1</div>
+        <div class="step-dot-label">Hossz</div>
+      </div>
+      <div class="step-line" id="line-0"></div>
+      <div class="step-dot" onclick="document.getElementById('sec-slots').scrollIntoView({behavior:'smooth'})">
+        <div class="step-dot-circle">2</div>
+        <div class="step-dot-label">Betűk</div>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" onclick="document.getElementById('sec-filter').scrollIntoView({behavior:'smooth'})">
+        <div class="step-dot-circle">3</div>
+        <div class="step-dot-label">Szűrés</div>
+      </div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" onclick="document.getElementById('sec-results').scrollIntoView({behavior:'smooth'})">
+        <div class="step-dot-circle">4</div>
+        <div class="step-dot-label">Találatok</div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-length">
+      <div class="section-label">
+        <span class="section-num">01</span>
+        <span class="section-title">Szó hossza</span>
+      </div>
+      <div class="section-divider"></div>
+      <div class="length-row">
+        <div class="length-stepper">
+          <button class="num-btn" id="btn-minus" aria-label="Csökkent">−</button>
+          <div class="len-display" id="len-display">6</div>
+          <button class="num-btn" id="btn-plus" aria-label="Növel">+</button>
+        </div>
+        <span class="length-hint" id="length-hint">betű</span>
+      </div>
+    </div>
+
+    <div class="section" id="sec-slots">
+      <div class="section-label">
+        <span class="section-num">02</span>
+        <span class="section-title">Ismert betűk pozíció szerint</span>
+      </div>
+      <div class="section-divider"></div>
+      <div id="slots-grid"></div>
+      <p class="slots-empty-hint" id="slots-hint" style="display:none;">Adj meg szóhosszt a fenti vezérlővel.</p>
+    </div>
+
+    <div class="section" id="sec-filter">
+      <div class="section-label">
+        <span class="section-num">03</span>
+        <span class="section-title">Betűk szűrése</span>
+      </div>
+      <div class="section-divider"></div>
+      <div class="card">
+        <div class="filter-row">
+          <div class="filter-group">
+            <span class="filter-label" style="display:flex;align-items:center;gap:6px;">
+              Kizárt betűk
+              <span class="info-btn" id="excl-info-btn" tabindex="0" aria-label="Infó">ⓘ
+                <span class="info-tooltip">
+                  Ha egy betű szerepel a Zöld vagy Sárga mezőben <em>és</em> a Kizárt listában is, az azt jelenti, hogy a szóban <strong>pontosan 1 darab</strong> ilyen betű van — és az már megvan.
+                </span>
+              </span>
+            </span>
+            <input type="text" id="excluded-input" placeholder="pl. aeiou" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <div class="pills-row" id="excluded-pills"></div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Kötelező betűk</span>
+            <input type="text" id="required-input" placeholder="pl. r" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <div class="pills-row" id="required-pills"></div>
+          </div>
+        </div>
+
+        <div class="yellow-filter-section">
+          <div class="yellow-filter-label">
+            <span class="yellow-badge"></span>
+            Van benne, de más helyen (sárga betűk)
+          </div>
+          <div id="yellow-slots-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-results">
+      <div class="section-label">
+        <span class="section-num">04</span>
+        <span class="section-title">Találatok</span>
+      </div>
+      <div class="section-divider"></div>
+
+      <!-- Search button -->
+      <div class="search-btn-wrap">
+        <button class="search-btn" id="search-btn" onclick="search()">
+          Keresés <span class="btn-icon">→</span>
+        </button>
+      </div>
+
+      <div class="loading-bar" id="loading-bar"></div>
+      <div id="results"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="screen-games">
+  <div class="games-app">
+
+    <button class="games-back-btn" onclick="goHome()">
+      ← Vissza a Szókeresőhöz
+    </button>
+
+    <div class="games-header">
+      <div class="games-eyebrow">Lexikon · Játékok</div>
+      <div class="games-title">Magyar Szójátékok</div>
+      <div class="games-sub">Válassz egy játékot az alábbiak közül</div>
+    </div>
+
+    <div class="games-grid">
+
+      <!-- Wordle -->
+      <div class="game-card" style="--card-glow: rgba(100,220,160,0.1); --card-border: rgba(100,220,160,0.35);" onclick="showWordle()">
+        <span class="game-icon">🟩</span>
+        <span class="game-badge">Szókirakó</span>
+        <div class="game-name">Wordle</div>
+        <div class="game-desc">Találd meg a rejtett szót 6 próbálkozásból. Minden tipp után színes jelzéseket kapsz.</div>
+        <span style="display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(100,220,160,0.8);background:rgba(100,220,160,0.08);border:1px solid rgba(100,220,160,0.25);border-radius:6px;padding:4px 10px;">▶ Játék indítása</span>
+      </div>
+
+      <!-- Szám = Betű -->
+      <div class="game-card" style="--card-glow: rgba(168,148,255,0.1); --card-border: rgba(168,148,255,0.35);" onclick="comingSoon('Szám = Betű')">
+        <span class="game-icon">🔢</span>
+        <span class="game-badge">Rejtvény</span>
+        <div class="game-name">Szám = Betű</div>
+        <div class="game-desc">Minden szám egy betűt jelöl. Fejtsd meg a titkos üzenetet logikai gondolkodással.</div>
+        <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+      </div>
+
+      <!-- Szókereső játék -->
+      <div class="game-card" style="--card-glow: rgba(245,200,66,0.1); --card-border: rgba(245,200,66,0.35);" onclick="comingSoon('Szókereső')">
+        <span class="game-icon">🔍</span>
+        <span class="game-badge">Szókirakó</span>
+        <div class="game-name">Szókereső</div>
+        <div class="game-desc">Találd meg az összes rejtett szót a betűrácsban — vízszintesen, függőlegesen, átlósan.</div>
+        <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+      </div>
+
+      <!-- Words of Wonders -->
+      <div class="game-card" style="--card-glow: rgba(201,169,110,0.1); --card-border: rgba(201,169,110,0.35);" onclick="comingSoon('Words of Wonders')">
+        <span class="game-icon">✨</span>
+        <span class="game-badge">Keresztrejtvény</span>
+        <div class="game-name">Words of Wonders</div>
+        <div class="game-desc">Alkoss szavakat a megadott betűkből, és töltsd ki a keresztrejtvény-szerű táblát.</div>
+        <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="screen-wordle">
+  <div class="wordle-app">
+
+    <div class="wordle-header">
+      <button class="wordle-back-btn" onclick="closeWordle()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8l4-4"/></svg>
+        Vissza
+      </button>
+      <div class="wordle-title-wrap">
+        <span class="wordle-eyebrow">Lexikon · Játék</span>
+        <span class="wordle-title-text">Wordle</span>
+      </div>
+      <button class="wordle-new-btn" onclick="startNewGame()">
+        Új játék
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M13 3v5h-5"/></svg>
+      </button>
+    </div>
+
+    <div class="wordle-len-row" id="wordle-len-row">
+      <span class="wordle-len-label">Szó hossza:</span>
+      <div class="wordle-len-chips" id="wordle-len-chips"></div>
+    </div>
+
+    <div class="wordle-status" id="wordle-status">
+      <span id="wordle-status-text">Töltés...</span>
+    </div>
+
+    <div class="wordle-grid-wrap">
+      <div class="wordle-grid" id="wordle-grid"></div>
+    </div>
+
+    <div class="wordle-msg" id="wordle-msg"></div>
+    <div class="wordle-keyboard" id="wordle-keyboard"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+let currentScreen = 'main';
+
+function showGames() {
+  if (currentScreen === 'games') return;
+  document.getElementById('screen-main').classList.add('hidden');
+  document.getElementById('screen-games').classList.add('visible');
+  document.getElementById('screen-wordle').classList.remove('visible');
+  document.getElementById('topbar-games-btn').style.display = 'none';
+  currentScreen = 'games';
+  window.scrollTo(0, 0);
+  if (typeof wHandleKey !== 'undefined') document.removeEventListener('keydown', wHandleKey);
+}
+
+function goHome() {
+  if (currentScreen === 'main') return;
+  document.getElementById('screen-main').classList.remove('hidden');
+  document.getElementById('screen-games').classList.remove('visible');
+  document.getElementById('screen-wordle').classList.remove('visible');
+  document.getElementById('topbar-games-btn').style.display = '';
+  currentScreen = 'main';
+  window.scrollTo(0, 0);
+  if (typeof wHandleKey !== 'undefined') document.removeEventListener('keydown', wHandleKey);
+}
+
+function comingSoon(name) {
+  showToast('🚧 ' + name + ' — hamarosan elérhető!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODULE METADATA
+// ═══════════════════════════════════════════════════════
+const MODULES = [
+  { id: 'biologia',    nev: 'Biológia',    leiras: 'Biológiai és élettudományi szakszókincs',         szin: '#7fff9f', ikon: '🧬' },
+  { id: 'fizika',      nev: 'Fizika',      leiras: 'Fizikai és természettudományi szakszókincs',       szin: '#7fd4ff', ikon: '⚛️' },
+  { id: 'foldrajz',    nev: 'Földrajz',    leiras: 'Földrajzi szakszókincs',                           szin: '#ffe07f', ikon: '🌍' },
+  { id: 'informatika', nev: 'Informatika', leiras: 'Informatikai és számítástechnikai szakszókincs',   szin: '#7fc9ff', ikon: '💻' },
+  { id: 'kemia',       nev: 'Kémia',       leiras: 'Kémiai és vegyipari szakszókincs',                 szin: '#d4a0ff', ikon: '⚗️' },
+  { id: 'matematika',  nev: 'Matematika',  leiras: 'Matematikai és logikai szakszókincs',              szin: '#ff7fb4', ikon: '∑'  },
+  { id: 'sport',       nev: 'Sport',       leiras: 'Sportszókincs és edzésterminológia',               szin: '#ff9f4f', ikon: '🏅' },
+  { id: 'zene',        nev: 'Zene',        leiras: 'Zenei szakszókincs és terminológia',               szin: '#ffcf7f', ikon: '🎵' },
+  { id: 'idegen',      nev: 'Idegen',      leiras: 'Idegen szavak és jövevényszók',                    szin: '#b4ffdf', ikon: '🌐' },
+  { id: 'ifjusagi',    nev: 'Ifjúsági',    leiras: 'Ifjúsági irodalom és szókincs',                    szin: '#ff7fdf', ikon: '📖' },
+  { id: 'regies',      nev: 'Régies',      leiras: 'Régies és archaikus szókincs',                     szin: '#c9a96e', ikon: '📜' },
+];
+
+let wordModuleMap = {};
+let wordList = [];
+let loaded = false;
+let currentLen = 6;
+let activeCategories = new Set();
+
+// ═══════════════════════════════════════════════════════
+//  LENGTH STEPPER
+// ═══════════════════════════════════════════════════════
+let holdTimer = null;
+let holdInterval = null;
+
+function setLen(v) {
+  v = Math.max(1, Math.min(40, v));
+  if (v === currentLen) return;
+  currentLen = v;
+  document.getElementById('len-display').textContent = v;
+  document.getElementById('length-hint').textContent = 'betű';
+  generateSlots();
+  generateYellowSlots();
+}
+
+function stepLen(delta) { setLen(currentLen + delta); }
+
+function startHold(delta) {
+  stepLen(delta);
+  holdTimer = setTimeout(() => {
+    let speed = 300;
+    function tick() {
+      stepLen(delta);
+      speed = Math.max(60, speed - 20);
+      holdInterval = setTimeout(tick, speed);
+    }
+    holdInterval = setTimeout(tick, speed);
+  }, 400);
+}
+
+function stopHold() {
+  clearTimeout(holdTimer);
+  clearTimeout(holdInterval);
+  holdTimer = null; holdInterval = null;
+}
+
+function bindBtn(id, delta) {
+  const btn = document.getElementById(id);
+  btn.addEventListener('mousedown', e => { e.preventDefault(); startHold(delta); });
+  btn.addEventListener('touchstart', e => { e.preventDefault(); startHold(delta); }, { passive: false });
+  window.addEventListener('mouseup', stopHold);
+  window.addEventListener('touchend', stopHold);
+}
+
+bindBtn('btn-minus', -1);
+bindBtn('btn-plus', +1);
+
+// ═══════════════════════════════════════════════════════
+//  GREEN SLOTS (exact position)
+// ═══════════════════════════════════════════════════════
+function generateSlots() {
+  const len = currentLen;
+  const grid = document.getElementById('slots-grid');
+
+  const existing = {};
+  for (let i = 0; i < 40; i++) {
+    const inp = document.getElementById('slot-' + i);
+    if (inp && inp.value.trim()) existing[i] = inp.value.trim();
+  }
+
+  grid.innerHTML = '';
+
+  for (let i = 0; i < len; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'slot-wrap';
+
+    const label = document.createElement('span');
+    label.className = 'slot-label';
+    label.textContent = i + 1;
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.maxLength = 2;
+    inp.id = 'slot-' + i;
+    inp.className = 'slot-input';
+    inp.autocomplete = 'off';
+    inp.autocorrect = 'off';
+    inp.autocapitalize = 'off';
+    inp.spellcheck = false;
+    if (existing[i]) {
+      inp.value = existing[i].toUpperCase();
+      inp.classList.add('filled');
+    }
+
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.toUpperCase();
+      inp.classList.toggle('filled', inp.value.trim() !== '');
+      if (inp.value.length >= 1) {
+        const next = document.getElementById('slot-' + (i + 1));
+        if (next) next.focus();
+      }
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && inp.value === '') {
+        const prev = document.getElementById('slot-' + (i - 1));
+        if (prev) prev.focus();
+      }
+      if (e.key === 'Enter') search();
+    });
+
+    wrap.appendChild(label);
+    wrap.appendChild(inp);
+    grid.appendChild(wrap);
+  }
+
+  setStep(1);
+  loadWords().catch(() => {});
+}
+
+generateSlots();
+
+// ═══════════════════════════════════════════════════════
+//  YELLOW SLOTS (wrong position — Wordle yellow logic)
+// ═══════════════════════════════════════════════════════
+function generateYellowSlots() {
+  const len = currentLen;
+  const grid = document.getElementById('yellow-slots-grid');
+
+  const existing = {};
+  for (let i = 0; i < 40; i++) {
+    const inp = document.getElementById('yslot-' + i);
+    if (inp && inp.value.trim()) existing[i] = inp.value.trim();
+  }
+
+  grid.innerHTML = '';
+
+  for (let i = 0; i < len; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'yellow-slot-wrap';
+
+    const label = document.createElement('span');
+    label.className = 'slot-label';
+    label.textContent = i + 1;
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.maxLength = 6;
+    inp.id = 'yslot-' + i;
+    inp.className = 'yellow-slot-input';
+    inp.autocomplete = 'off';
+    inp.autocorrect = 'off';
+    inp.autocapitalize = 'off';
+    inp.spellcheck = false;
+    inp.placeholder = '·';
+    if (existing[i]) {
+      inp.value = existing[i].toUpperCase();
+      inp.classList.add('has-value');
+    }
+
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.toUpperCase().replace(/[^A-ZÁÉÍÓÖŐÚÜŰ]/g, '');
+      inp.classList.toggle('has-value', inp.value.trim() !== '');
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && inp.value === '') {
+        const prev = document.getElementById('yslot-' + (i - 1));
+        if (prev) prev.focus();
+      }
+      if (e.key === 'Enter') search();
+    });
+
+    wrap.appendChild(label);
+    wrap.appendChild(inp);
+    grid.appendChild(wrap);
+  }
+}
+
+generateYellowSlots();
+
+function getYellowConstraints() {
+  // Returns: { pos: [letter, letter, ...] } — letters cannot be at this position, but must appear somewhere
+  const result = {};
+  for (let i = 0; i < currentLen; i++) {
+    const inp = document.getElementById('yslot-' + i);
+    if (inp && inp.value.trim()) {
+      const letters = [...new Set(inp.value.trim().toLowerCase().split('').filter(c => /[a-záéíóöőúüű]/.test(c)))];
+      if (letters.length > 0) result[i] = letters;
+    }
+  }
+  return result;
+}
+
+function updateYellowPills() {
+  // no separate pill display needed — the slots themselves are the visual
+}
+
+// ═══════════════════════════════════════════════════════
+//  STEP DOTS
+// ═══════════════════════════════════════════════════════
+function setStep(idx) {
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < idx) d.classList.add('done');
+    else if (i === idx) d.classList.add('active');
+  });
+  for (let i = 0; i < 3; i++) {
+    const line = document.getElementById('line-' + i);
+    if (line) line.classList.toggle('done', i < idx);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PILLS
+// ═══════════════════════════════════════════════════════
+function updatePills(inputId, pillsId, cls) {
+  const val = document.getElementById(inputId).value.trim();
+  const chars = val ? [...new Set(val.split('').map(c => c.toLowerCase()).filter(c => c.trim() && c !== ' '))] : [];
+  const pills = document.getElementById(pillsId);
+  pills.innerHTML = '';
+  chars.forEach(c => {
+    const span = document.createElement('span');
+    span.className = 'pill ' + cls;
+    span.textContent = c.toUpperCase();
+    pills.appendChild(span);
+  });
+}
+document.getElementById('excluded-input').addEventListener('input', () => updatePills('excluded-input','excluded-pills','pill-excluded'));
+document.getElementById('required-input').addEventListener('input', () => updatePills('required-input','required-pills','pill-required'));
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function normalize(s) { return s.toLowerCase(); }
+
+function showToast(msg, dur = 2400) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function getModuleMeta(id) {
+  return MODULES.find(m => m.id === id) || { nev: 'Alap', leiras: 'Alapszókincs', szin: '#a894ff', ikon: '📚' };
+}
+
+function highlightWord(word, greenConstraints, yellowConstraints, filterStr) {
+  const yellowFlat = Object.values(yellowConstraints).flat();
+  return word.split('').map((ch, i) => {
+    if (greenConstraints[i]) return `<span class="pos-match">${ch}</span>`;
+    if (yellowFlat.includes(ch)) return `<span class="yellow-match">${ch}</span>`;
+    if (filterStr && filterStr.includes(ch)) return `<span class="match">${ch}</span>`;
+    return ch;
+  }).join('');
+}
+
+function buildTooltip(modules) {
+  const primary = getModuleMeta(modules[0]);
+  const extras = modules.slice(1).map(m => getModuleMeta(m).nev).join(', ');
+  return `
+    <div class="tooltip">
+      <div class="tooltip-cat">
+        <span class="cat-dot" style="background:${primary.szin}"></span>
+        <span style="color:${primary.szin}">${primary.ikon} ${primary.nev}</span>
+      </div>
+      <div class="tooltip-desc">${primary.leiras}${extras ? '<br><span style="color:var(--text-tertiary);font-size:10px;">+ ' + extras + '</span>' : ''}</div>
+      <div class="tooltip-arrow"></div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CLEAR
+// ═══════════════════════════════════════════════════════
+function clearAll() {
+  for (let i = 0; i < currentLen; i++) {
+    const inp = document.getElementById('slot-' + i);
+    if (inp) { inp.value = ''; inp.classList.remove('filled'); }
+    const yinp = document.getElementById('yslot-' + i);
+    if (yinp) { yinp.value = ''; yinp.classList.remove('has-value'); }
+  }
+  document.getElementById('excluded-input').value = '';
+  document.getElementById('required-input').value = '';
+  document.getElementById('excluded-pills').innerHTML = '';
+  document.getElementById('required-pills').innerHTML = '';
+  document.getElementById('results').innerHTML = '';
+  activeCategories.clear();
+  showToast('✓ Mezők törölve');
+}
+
+// ═══════════════════════════════════════════════════════
+//  WORD LOADING
+// ═══════════════════════════════════════════════════════
+const RAW_BASE = 'https://raw.githubusercontent.com/laszlonemeth/magyarispell/master/szotar/';
+const MODULE_URLS = {
+  biologia:    RAW_BASE + 'biologia/fonev.1',
+  fizika:      RAW_BASE + 'fizika/fonev.1',
+  foldrajz:    RAW_BASE + 'foldrajz/fonev.1',
+  informatika: RAW_BASE + 'informatika/fonev.1',
+  kemia:       RAW_BASE + 'kemia/fonev.1',
+  matematika:  RAW_BASE + 'matematika/fonev.1',
+  sport:       RAW_BASE + 'sport/fonev.1',
+  zene:        RAW_BASE + 'zene/fonev.1',
+  idegen:      RAW_BASE + 'idegen/fonev.1',
+  ifjusagi:    RAW_BASE + 'ifjusagi/fonev.1',
+  regies:      RAW_BASE + 'regies/fonev.1',
+};
+const FALLBACK_URL = 'https://gist.githubusercontent.com/Konstantinusz/f9517357e46fa827c3736031ac8d01c7/raw/fc98429a6357d1c4fcc644e1b70c2431bd046cf0/magyar-szavak.txt';
+
+async function tryFetch(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.text();
+  } catch { return null; }
+}
+
+async function loadWords() {
+  if (loaded) return;
+  // Use the reliable Gist source (CORS-enabled). LibreOffice CDN blocks cross-origin.
+  let mainText = await tryFetch(FALLBACK_URL);
+  if (!mainText) throw new Error('Nem sikerült betölteni a szólistát.');
+
+  const rawWords = mainText.split('\n').map(l => {
+    const slash = l.indexOf('/');
+    return (slash > -1 ? l.slice(0, slash) : l).trim().toLowerCase();
+  }).filter(w => w.length > 0 && !w.startsWith('#') && /^[a-záéíóöőúüű]+$/i.test(w));
+
+  const wordSet = new Set(rawWords);
+  wordModuleMap = {};
+  wordSet.forEach(w => { wordModuleMap[w] = ['alap']; });
+
+  const fetchPromises = Object.entries(MODULE_URLS).map(async ([modId, url]) => {
+    const text = await tryFetch(url);
+    if (!text) return;
+    text.split('\n').forEach(line => {
+      const word = line.trim().split(/\s+/)[0].toLowerCase();
+      if (!word || word.startsWith('#') || !/^[a-záéíóöőúüű]+$/i.test(word)) return;
+      if (wordModuleMap[word]) {
+        if (!wordModuleMap[word].includes(modId)) wordModuleMap[word].push(modId);
+      } else {
+        wordModuleMap[word] = [modId];
+        wordSet.add(word);
+      }
+    });
+  });
+
+  await Promise.allSettled(fetchPromises);
+  wordList = [...wordSet].map(w => ({ word: w, modules: wordModuleMap[w] || ['alap'] }));
+  loaded = true;
+}
+
+// ═══════════════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════════════
+async function search() {
+  const len = currentLen;
+  const btn = document.getElementById('search-btn');
+  const results = document.getElementById('results');
+  const bar = document.getElementById('loading-bar');
+
+  btn.innerHTML = '<span class="spinner"></span>Keresés...';
+  btn.disabled = true;
+  bar.classList.add('active');
+  setStep(3);
+
+  try { await loadWords(); }
+  catch(e) {
+    results.innerHTML = '<p style="color:rgba(255,100,100,0.8);font-size:13px;font-family:var(--dm-mono);">Hiba a szólista betöltésekor.</p>';
+    btn.innerHTML = 'Keresés <span class="btn-icon">→</span>';
+    btn.disabled = false; bar.classList.remove('active');
+    return;
+  }
+
+  // Green constraints (exact position)
+  const constraints = {};
+  for (let i = 0; i < len; i++) {
+    const inp = document.getElementById('slot-' + i);
+    if (inp && inp.value.trim()) constraints[i] = normalize(inp.value.trim());
+  }
+
+  // Yellow constraints (wrong position — letter present but not at this pos)
+  const yellowConstraints = getYellowConstraints();
+
+  const excVal = document.getElementById('excluded-input').value.trim();
+  const reqVal = document.getElementById('required-input').value.trim();
+  const excluded = excVal ? [...new Set(excVal.split('').map(c => c.toLowerCase()).filter(c => c.trim()))] : [];
+  const required = reqVal ? [...new Set(reqVal.split('').map(c => c.toLowerCase()).filter(c => c.trim()))] : [];
+
+  // Also derive required from yellow (yellow letters must appear somewhere)
+  const yellowLetters = Object.values(yellowConstraints);
+
+  let matches = wordList.filter(({ word, modules }) => {
+    const w = normalize(word);
+    if (w.length !== len) return false;
+
+    // Green: exact position
+    for (const [pos, ch] of Object.entries(constraints)) {
+      if (w[parseInt(pos)] !== ch) return false;
+    }
+
+    // Required letters (from manual input)
+    for (const ch of required) { if (!w.includes(ch)) return false; }
+
+    // Yellow: each letter must appear in word, but NOT at this exact position
+    for (const [pos, letters] of Object.entries(yellowConstraints)) {
+      for (const ch of letters) {
+        if (!w.includes(ch)) return false;
+        if (w[parseInt(pos)] === ch) return false;
+      }
+    }
+
+    // Build "known letter counts": how many times each letter is confirmed
+    // present via green (exact) and yellow (somewhere) slots
+    const knownCount = {}; // letter → minimum confirmed count
+    for (const ch of Object.values(constraints)) {
+      knownCount[ch] = (knownCount[ch] || 0) + 1;
+    }
+    for (const letters of Object.values(yellowConstraints)) {
+      for (const ch of letters) {
+        knownCount[ch] = (knownCount[ch] || 0) + 1;
+      }
+    }
+
+    // Excluded letters: split into two categories
+    for (const ch of excluded) {
+      const wordOccurrences = w.split('').filter(l => l === ch).length;
+      if (ch in knownCount) {
+        // Letter is known to exist (green/yellow) AND is excluded →
+        // means the word has EXACTLY knownCount[ch] of this letter
+        if (wordOccurrences !== knownCount[ch]) return false;
+      } else {
+        // Truly excluded: letter must not appear at all
+        if (wordOccurrences > 0) return false;
+      }
+    }
+
+    return true;
+  });
+
+  btn.innerHTML = 'Keresés <span class="btn-icon">→</span>';
+  btn.disabled = false;
+  bar.classList.remove('active');
+  results.innerHTML = '';
+
+  // Scroll to results on mobile
+  setTimeout(() => {
+    document.getElementById('sec-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+
+  const meta = document.createElement('div');
+  meta.className = 'results-meta';
+  const countEl = document.createElement('div');
+  countEl.className = 'results-count';
+  countEl.textContent = matches.length + ' találat';
+  meta.appendChild(countEl);
+  const tags = document.createElement('div');
+  tags.className = 'filter-tags';
+  const kn = Object.keys(constraints).length;
+  const yn = Object.keys(yellowConstraints).length;
+  if (kn) tags.innerHTML += `<span class="filter-tag">${kn} zöld</span>`;
+  if (yn) tags.innerHTML += `<span class="filter-tag">${yn} sárga</span>`;
+  if (excluded.length) tags.innerHTML += `<span class="filter-tag">${excluded.length} kizárt</span>`;
+  if (required.length) tags.innerHTML += `<span class="filter-tag">${required.length} kötelező</span>`;
+  meta.appendChild(tags);
+  results.appendChild(meta);
+
+  if (matches.length === 0) {
+    const msg = document.createElement('div');
+    msg.className = 'no-results';
+    msg.textContent = 'Nincs találat — lazíts a feltételeken';
+    results.appendChild(msg);
+    return;
+  }
+
+  const fsWrap = document.createElement('div');
+  fsWrap.className = 'results-search-wrap';
+  fsWrap.innerHTML = `<span class="results-search-icon">⌕</span>`;
+  const fsInp = document.createElement('input');
+  fsInp.type = 'text';
+  fsInp.placeholder = 'Szűrés a találatok között...';
+  fsInp.autocomplete = 'off';
+  fsWrap.appendChild(fsInp);
+  results.appendChild(fsWrap);
+
+  const grid = document.createElement('div');
+  grid.className = 'words-grid';
+  results.appendChild(grid);
+
+  const noteEl = document.createElement('p');
+  noteEl.className = 'truncate-note';
+  results.appendChild(noteEl);
+
+  function renderChips(list, filterStr) {
+    grid.innerHTML = '';
+    const shown = list.slice(0, 200);
+    shown.forEach((item, idx) => {
+      const { word, modules } = item;
+      const chip = document.createElement('span');
+      chip.className = 'word-chip';
+      chip.style.animationDelay = Math.min(idx * 0.01, 0.35) + 's';
+      const primary = getModuleMeta(modules[0]);
+      chip.style.borderLeftColor = primary.szin + '66';
+      chip.style.borderLeftWidth = '2px';
+      chip.innerHTML = `<span style="position:relative;z-index:1">${highlightWord(word, constraints, yellowConstraints, filterStr)}</span>` + buildTooltip(modules);
+      chip.title = '';
+      chip.addEventListener('click', () => {
+        for (let i = 0; i < word.length; i++) {
+          const inp = document.getElementById('slot-' + i);
+          if (inp) { inp.value = word[i].toUpperCase(); inp.classList.add('filled'); }
+        }
+        showToast('„' + word + '" beillesztve');
+      });
+      grid.appendChild(chip);
+    });
+    noteEl.textContent = list.length > 200
+      ? `Csak az első 200 jelenik meg ${list.length}-ből — szűkíts tovább`
+      : '';
+  }
+
+  renderChips(matches, '');
+  countEl.textContent = matches.length + ' találat';
+
+  fsInp.addEventListener('input', () => {
+    const f = normalize(fsInp.value.trim());
+    const filtered = f ? matches.filter(({ word }) => word.includes(f)) : matches;
+    countEl.textContent = filtered.length + ' találat';
+    renderChips(filtered, f);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  WORDLE GAME
+// ═══════════════════════════════════════════════════════
+
+// ── Navigation ──────────────────────────────────────────
+function showWordle() {
+  currentScreen = 'wordle';
+  document.getElementById('screen-main').classList.add('hidden');
+  document.getElementById('screen-games').classList.remove('visible');
+  document.getElementById('screen-wordle').classList.add('visible');
+  document.getElementById('topbar-games-btn').style.display = 'none';
+  window.scrollTo(0, 0);
+  if (!wloaded) initWordle();
+}
+
+function closeWordle() {
+  currentScreen = 'games';
+  document.getElementById('screen-wordle').classList.remove('visible');
+  document.getElementById('screen-games').classList.add('visible');
+  document.getElementById('topbar-games-btn').style.display = '';
+  window.scrollTo(0, 0);
+  document.removeEventListener('keydown', wHandleKey);
+}
+
+// ── State ────────────────────────────────────────────────
+let wWordList = [];   // filtered by length
+let wAllWords = [];   // all words (for validation)
+let wloaded = false;
+let wWordLen = 5;
+let wMaxGuesses = 6;
+let wSecret = '';
+let wGuesses = [];        // array of submitted guess strings
+let wCurrentGuess = '';   // letters typed in current row
+let wGameOver = false;
+let wKeyState = {};       // letter → 'correct'|'present'|'absent'
+let wLoadingWords = false;
+
+// ── Init ─────────────────────────────────────────────────
+async function initWordle() {
+  buildLenChips();
+  buildKeyboard();
+  await loadWordleWords();
+  startNewGame();
+}
+
+// ── Word loading (reuse main wordList if available) ──────
+async function loadWordleWords() {
+  if (wloaded) return;
+  wLoadingWords = true;
+  setWordleStatus('Szólista betöltése...');
+
+  // Reuse main wordList if already loaded, else load now
+  let source = wordList;
+  if (!loaded) {
+    try { await loadWords(); source = wordList; }
+    catch(e) { source = []; }
+  } else {
+    source = wordList;
+  }
+
+  wAllWords = source.map(e => (typeof e === 'object' ? e.word : e).toLowerCase())
+    .filter(w => /^[a-záéíóöőúüű]+$/.test(w));
+
+  wloaded = true;
+  wLoadingWords = false;
+}
+
+function getWordleWordsForLen(len) {
+  return wAllWords.filter(w => w.length === len);
+}
+
+// ── Length chips ─────────────────────────────────────────
+function buildLenChips() {
+  const row = document.getElementById('wordle-len-chips');
+  row.innerHTML = '';
+  [4, 5, 6, 7, 8].forEach(n => {
+    const chip = document.createElement('button');
+    chip.className = 'wordle-len-chip' + (n === wWordLen ? ' active' : '');
+    chip.textContent = n;
+    chip.addEventListener('click', () => {
+      if (wWordLen === n) return;
+      wWordLen = n;
+      document.querySelectorAll('.wordle-len-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      startNewGame();
+    });
+    row.appendChild(chip);
+  });
+}
+
+// ── New game ─────────────────────────────────────────────
+async function startNewGame() {
+  if (wLoadingWords) return;
+  if (!wloaded) { await loadWordleWords(); }
+
+  const pool = getWordleWordsForLen(wWordLen);
+  if (pool.length === 0) {
+    setWordleStatus('Nincs elég ' + wWordLen + ' betűs szó.');
+    return;
+  }
+
+  // Filter to "reasonable" words: no proper nouns heuristic (all lowercase already)
+  // Pick random word
+  wSecret = pool[Math.floor(Math.random() * pool.length)];
+  wGuesses = [];
+  wCurrentGuess = '';
+  wGameOver = false;
+  wKeyState = {};
+
+  buildGrid();
+  buildKeyboard();
+  updateGrid();
+  setWordleStatus(wWordLen + ' betűs szó · ' + wMaxGuesses + ' kísérlet');
+  hideResult();
+  hideMsg();
+
+  document.removeEventListener('keydown', wHandleKey);
+  document.addEventListener('keydown', wHandleKey);
+}
+
+// ── Grid ─────────────────────────────────────────────────
+function buildGrid() {
+  const grid = document.getElementById('wordle-grid');
+  grid.innerHTML = '';
+
+  // Calculate cell size based on viewport width and word length
+  const vw = Math.min(window.innerWidth, 500);
+  const pad = 32;
+  const gap = 6;
+  const maxCellSize = 62;
+  const cellSize = Math.min(maxCellSize, Math.floor((vw - pad - gap * (wWordLen - 1)) / wWordLen));
+  const fontSize = Math.max(14, Math.floor(cellSize * 0.42));
+
+  grid.style.gridTemplateColumns = 'none';
+  grid.style.display = 'flex';
+  grid.style.flexDirection = 'column';
+  grid.style.gap = '6px';
+
+  for (let r = 0; r < wMaxGuesses; r++) {
+    const row = document.createElement('div');
+    row.className = 'wordle-row';
+    row.id = 'wrow-' + r;
+    row.style.gap = '6px';
+    for (let c = 0; c < wWordLen; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'wordle-cell';
+      cell.id = `wcell-${r}-${c}`;
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      cell.style.fontSize = fontSize + 'px';
+      cell.style.borderRadius = Math.max(6, Math.floor(cellSize * 0.15)) + 'px';
+      row.appendChild(cell);
+    }
+    grid.appendChild(row);
+  }
+}
+
+// ── Update grid display ───────────────────────────────────
+function updateGrid() {
+  // Render past guesses
+  wGuesses.forEach((guess, r) => {
+    const result = scoreGuess(guess, wSecret);
+    for (let c = 0; c < wWordLen; c++) {
+      const cell = document.getElementById(`wcell-${r}-${c}`);
+      if (!cell) continue;
+      cell.textContent = guess[c].toUpperCase();
+      cell.className = 'wordle-cell ' + result[c];
+    }
+  });
+
+  // Render current guess
+  const r = wGuesses.length;
+  if (r < wMaxGuesses && !wGameOver) {
+    for (let c = 0; c < wWordLen; c++) {
+      const cell = document.getElementById(`wcell-${r}-${c}`);
+      if (!cell) continue;
+      const ch = wCurrentGuess[c];
+      cell.textContent = ch ? ch.toUpperCase() : '';
+      cell.className = 'wordle-cell' + (ch ? ' typed' : '');
+    }
+    // Clear remaining rows
+    for (let rr = r + 1; rr < wMaxGuesses; rr++) {
+      for (let c = 0; c < wWordLen; c++) {
+        const cell = document.getElementById(`wcell-${rr}-${c}`);
+        if (cell) { cell.textContent = ''; cell.className = 'wordle-cell'; }
+      }
+    }
+  }
+}
+
+// ── Scoring ───────────────────────────────────────────────
+function scoreGuess(guess, secret) {
+  // Returns array of 'correct'|'present'|'absent' for each position
+  const result = Array(guess.length).fill('absent');
+  const secretArr = secret.split('');
+  const guessArr = guess.split('');
+  const used = Array(secret.length).fill(false);
+
+  // Pass 1: exact matches
+  for (let i = 0; i < guess.length; i++) {
+    if (guessArr[i] === secretArr[i]) {
+      result[i] = 'correct';
+      used[i] = true;
+    }
+  }
+  // Pass 2: present (wrong position)
+  for (let i = 0; i < guess.length; i++) {
+    if (result[i] === 'correct') continue;
+    for (let j = 0; j < secret.length; j++) {
+      if (!used[j] && guessArr[i] === secretArr[j]) {
+        result[i] = 'present';
+        used[j] = true;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+// ── Submit guess ──────────────────────────────────────────
+function wSubmit() {
+  if (wGameOver) return;
+  const guess = wCurrentGuess.toLowerCase();
+  const r = wGuesses.length;
+
+  if (guess.length < wWordLen) {
+    shakeRow(r);
+    showMsg('Még ' + (wWordLen - guess.length) + ' betű hiányzik!');
+    return;
+  }
+
+  // Validate: must be in word list (lenient — allow if wordList available)
+  if (wAllWords.length > 0 && !wAllWords.includes(guess)) {
+    shakeRow(r);
+    showMsg('Ismeretlen szó');
+    return;
+  }
+
+  wGuesses.push(guess);
+  wCurrentGuess = '';
+
+  const result = scoreGuess(guess, wSecret);
+
+  // Animate reveal
+  revealRow(r, result, guess, () => {
+    // Update keyboard
+    result.forEach((state, i) => {
+      const key = guess[i];
+      const prev = wKeyState[key];
+      // Priority: correct > present > absent
+      if (prev === 'correct') return;
+      if (state === 'correct') wKeyState[key] = 'correct';
+      else if (state === 'present' && prev !== 'correct') wKeyState[key] = 'present';
+      else if (!prev) wKeyState[key] = 'absent';
+    });
+    updateKeyboard();
+
+    const won = result.every(s => s === 'correct');
+    if (won) {
+      wGameOver = true;
+      bounceRow(r, () => showResult(true, r + 1));
+    } else if (wGuesses.length >= wMaxGuesses) {
+      wGameOver = true;
+      setTimeout(() => showResult(false, 0), 800);
+    } else {
+      updateGrid();
+    }
+  });
+}
+
+// ── Reveal animation ──────────────────────────────────────
+function revealRow(r, result, guess, onDone) {
+  const cells = [];
+  for (let c = 0; c < wWordLen; c++) {
+    cells.push(document.getElementById(`wcell-${r}-${c}`));
+  }
+
+  cells.forEach((cell, c) => {
+    setTimeout(() => {
+      cell.classList.add('flip');
+
+      setTimeout(() => {
+        cell.textContent = guess[c].toUpperCase();
+        cell.className = 'wordle-cell ' + result[c];
+      }, 250); // mid-flip
+
+      if (c === wWordLen - 1) {
+        setTimeout(onDone, 500 + c * 80);
+      }
+    }, c * 80);
+  });
+}
+
+// ── Bounce animation (win) ────────────────────────────────
+function bounceRow(r, onDone) {
+  for (let c = 0; c < wWordLen; c++) {
+    const cell = document.getElementById(`wcell-${r}-${c}`);
+    if (!cell) continue;
+    setTimeout(() => {
+      cell.classList.add('bounce');
+    }, c * 80);
+  }
+  if (onDone) setTimeout(onDone, wWordLen * 80 + 600);
+}
+
+// ── Shake row (invalid) ───────────────────────────────────
+function shakeRow(r) {
+  const row = document.getElementById('wrow-' + r);
+  if (!row) return;
+  row.classList.remove('shake');
+  void row.offsetWidth; // reflow
+  row.classList.add('shake');
+  row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true });
+}
+
+// ── Message ───────────────────────────────────────────────
+let msgTimer = null;
+function showMsg(text, duration = 1800) {
+  const el = document.getElementById('wordle-msg');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+function hideMsg() {
+  document.getElementById('wordle-msg').classList.remove('show');
+}
+
+// ── Status ────────────────────────────────────────────────
+function setWordleStatus(text) {
+  document.getElementById('wordle-status-text').textContent = text;
+}
+
+// ── Result panel ──────────────────────────────────────────
+function showResult(won, guessCount) {
+  hideMsg();
+  // Remove old result if any
+  const old = document.getElementById('wordle-result-panel');
+  if (old) old.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'wordle-result-panel';
+  panel.className = 'wordle-result';
+
+  const msgs = ['Zseni! 🧠', 'Fantasztikus!', 'Remek!', 'Nagyszerű!', 'Sikerült!', 'Uff, megvan!'];
+  const emoji = won ? ['🏆','🎉','✨','🌟','🎊','🙌'][guessCount-1] : '😞';
+  const title = won ? msgs[guessCount - 1] : 'Sajnos nem sikerült';
+  const stat = won
+    ? guessCount + '. próbálkozásból · ' + wWordLen + ' betűs szó'
+    : 'A szó: ';
+
+  panel.innerHTML = `
+    <span class="wordle-result-emoji">${emoji}</span>
+    <div class="wordle-result-title${won ? '' : ' lose'}">${title}</div>
+    <div class="wordle-result-word">${wSecret.toUpperCase()}</div>
+    <div class="wordle-result-stat">${stat}</div>
+    <button class="wordle-result-btn" onclick="startNewGame()">
+      ↻ &nbsp;Új játék
+    </button>
+  `;
+
+  const gridWrap = document.querySelector('.wordle-grid-wrap');
+  gridWrap.parentNode.insertBefore(panel, gridWrap.nextSibling);
+
+  document.removeEventListener('keydown', wHandleKey);
+}
+
+function hideResult() {
+  const old = document.getElementById('wordle-result-panel');
+  if (old) old.remove();
+}
+
+// ── Keyboard ─────────────────────────────────────────────
+const HU_ROWS = [
+  ['q','w','e','r','t','z','u','i','o','p','ő','ú'],
+  ['a','s','d','f','g','h','j','k','l','é','á'],
+  ['ENTER','y','x','c','v','b','n','m','ö','ü','ó','DEL'],
+];
+
+function buildKeyboard() {
+  const kb = document.getElementById('wordle-keyboard');
+  kb.innerHTML = '';
+
+  HU_ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'wkey-row';
+    row.forEach(key => {
+      const btn = document.createElement('button');
+      const isWide = key === 'ENTER' || key === 'DEL';
+      btn.className = 'wkey' + (isWide ? ' wkey-wide' : '');
+      btn.dataset.key = key;
+      btn.textContent = key === 'DEL' ? '⌫' : key === 'ENTER' ? '↵' : key.toUpperCase();
+      btn.addEventListener('click', () => wHandleVirtualKey(key));
+      rowEl.appendChild(btn);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function updateKeyboard() {
+  document.querySelectorAll('.wkey').forEach(btn => {
+    const key = btn.dataset.key;
+    if (!key || key === 'ENTER' || key === 'DEL') return;
+    const state = wKeyState[key];
+    btn.className = 'wkey' + (btn.classList.contains('wkey-wide') ? ' wkey-wide' : '') + (state ? ' ' + state : '');
+  });
+}
+
+// ── Input handling ────────────────────────────────────────
+function wHandleVirtualKey(key) {
+  if (wGameOver) return;
+  if (key === 'DEL' || key === 'BACKSPACE') {
+    if (wCurrentGuess.length > 0) {
+      wCurrentGuess = wCurrentGuess.slice(0, -1);
+      updateGrid();
+    }
+  } else if (key === 'ENTER') {
+    wSubmit();
+  } else if (key.length === 1 && /[a-záéíóöőúüű]/i.test(key)) {
+    if (wCurrentGuess.length < wWordLen) {
+      wCurrentGuess += key.toLowerCase();
+      updateGrid();
+    }
+  }
+}
+
+function wHandleKey(e) {
+  if (currentScreen !== 'wordle') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const key = e.key;
+  if (key === 'Backspace') { e.preventDefault(); wHandleVirtualKey('BACKSPACE'); }
+  else if (key === 'Enter') { e.preventDefault(); wHandleVirtualKey('ENTER'); }
+  else if (key.length === 1) { wHandleVirtualKey(key); }
+}
+
+// ── Info button toggle (mobile tap support) ──────────────
+document.addEventListener('DOMContentLoaded', () => {});
+document.querySelectorAll && setTimeout(() => {
+  const btn = document.getElementById('excl-info-btn');
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      btn.classList.toggle('open');
+    });
+    document.addEventListener('click', () => btn.classList.remove('open'));
+  }
+}, 200);
+</script>
+</body>
+</html>
