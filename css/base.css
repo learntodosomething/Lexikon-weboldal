@@ -31,6 +31,8 @@ html {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 body {
   overflow-x: hidden;
@@ -42,6 +44,8 @@ body {
   font-weight: 300;
   min-height: 100vh;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 body::before {
@@ -84,6 +88,7 @@ body::after {
   padding: 0 18px;
   gap: 10px;
   overflow: hidden;
+  touch-action: none;
 }
 
 .topbar-logo {
