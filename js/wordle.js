@@ -17,8 +17,6 @@ function showWordle() {
   document.getElementById('screen-wordle').classList.add('visible');
   document.getElementById('screen-szambetu').classList.remove('visible');
   document.getElementById('topbar-games-btn').style.display = 'none';
-  // Prevent body scroll while Wordle is open
-  document.body.style.overflow = 'hidden';
   window.scrollTo(0, 0);
   if (typeof sbHandleKey !== 'undefined') document.removeEventListener('keydown', sbHandleKey);
   if (!wloaded) {
@@ -169,10 +167,8 @@ function computeAndApplyLayout() {
     if (cell >= (isMobile ? 20 : 28)) break;
   }
 
-  // Clamp minimum cell size
   bestCell = Math.max(isMobile ? 22 : 28, Math.floor(bestCell));
 
-  // Apply CSS vars
   document.documentElement.style.setProperty('--wkey-h', bestKH + 'px');
   document.documentElement.style.setProperty('--wkey-fs', Math.max(10, Math.floor(bestKH * 0.28)) + 'px');
   document.documentElement.style.setProperty('--wkey-gap', keyGap + 'px');
