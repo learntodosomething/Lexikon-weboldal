@@ -4,7 +4,7 @@ let wSecret = '', wGuesses = [], wCurrentGuess = '', wGameOver = false;
 let wKeyState = {}, wLoadingWords = false;
 
 const HU_ROWS = [
-  ['ö','ő','ó','ü','ű','á','é','í','DEL'],
+  ['ö','ő','ó','ü','ű','ú','á','é','í','DEL'],
   ['q','w','e','r','t','z','u','i','o','p'],
   ['a','s','d','f','g','h','j','k','l'],
   ['y','x','c','v','b','n','m','ENTER'],
