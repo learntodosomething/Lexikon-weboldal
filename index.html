@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Lexikon — Magyar Szójátékok</title>
+<title>Lexikon — Magyar Szókereső</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/search.css">
-<link rel="stylesheet" href="css/games.css">
-<link rel="stylesheet" href="css/wordle.css">
-<link rel="stylesheet" href="css/szambetu.css">
 <style>
   .confirm-overlay {
     position: fixed; inset: 0; z-index: 900;
@@ -52,7 +49,7 @@
 <div class="noise"></div>
 
 <nav class="topbar" id="topbar">
-  <div class="topbar-logo" onclick="goHome()" title="Lexikon — Főoldal">
+  <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
     <div class="topbar-logo-icon">✦</div>
     <div class="topbar-logo-text">
       <span class="topbar-logo-main">Lexikon</span>
@@ -60,246 +57,112 @@
     </div>
   </div>
   <div class="topbar-spacer"></div>
-  <button class="topbar-games-btn" id="topbar-games-btn" onclick="showGames()">
+  <a href="games.html" class="topbar-games-btn">
     🎮 <span>Játékok</span>
-  </button>
+  </a>
 </nav>
 
-<div id="screen-main">
-  <div class="app">
+<div class="app">
 
-    <div class="steps-track" id="steps-track">
-      <div class="step-dot active" onclick="scrollTo(0,0)">
-        <div class="step-dot-circle">1</div>
-        <div class="step-dot-label">Hossz</div>
-      </div>
-      <div class="step-line" id="line-0"></div>
-      <div class="step-dot" onclick="document.getElementById('sec-slots').scrollIntoView({behavior:'smooth'})">
-        <div class="step-dot-circle">2</div>
-        <div class="step-dot-label">Betűk</div>
-      </div>
-      <div class="step-line" id="line-1"></div>
-      <div class="step-dot" onclick="document.getElementById('sec-filter').scrollIntoView({behavior:'smooth'})">
-        <div class="step-dot-circle">3</div>
-        <div class="step-dot-label">Szűrés</div>
-      </div>
-      <div class="step-line" id="line-2"></div>
-      <div class="step-dot" onclick="document.getElementById('sec-results').scrollIntoView({behavior:'smooth'})">
-        <div class="step-dot-circle">4</div>
-        <div class="step-dot-label">Találatok</div>
-      </div>
+  <div class="steps-track" id="steps-track">
+    <div class="step-dot active" onclick="scrollTo(0,0)">
+      <div class="step-dot-circle">1</div>
+      <div class="step-dot-label">Hossz</div>
     </div>
-
-    <div class="section" id="sec-length">
-      <div class="section-label">
-        <span class="section-num">01</span>
-        <span class="section-title">Szó hossza</span>
-      </div>
-      <div class="section-divider"></div>
-      <div class="length-row">
-        <div class="length-stepper">
-          <button class="num-btn" id="btn-minus" aria-label="Csökkent">−</button>
-          <div class="len-display" id="len-display">6</div>
-          <button class="num-btn" id="btn-plus" aria-label="Növel">+</button>
-        </div>
-        <span class="length-hint">betű</span>
-      </div>
+    <div class="step-line" id="line-0"></div>
+    <div class="step-dot" onclick="document.getElementById('sec-slots').scrollIntoView({behavior:'smooth'})">
+      <div class="step-dot-circle">2</div>
+      <div class="step-dot-label">Betűk</div>
     </div>
-
-    <div class="section" id="sec-slots">
-      <div class="section-label">
-        <span class="section-num">02</span>
-        <span class="section-title">Ismert betűk pozíció szerint</span>
-      </div>
-      <div class="section-divider"></div>
-      <div id="slots-grid"></div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-dot" onclick="document.getElementById('sec-filter').scrollIntoView({behavior:'smooth'})">
+      <div class="step-dot-circle">3</div>
+      <div class="step-dot-label">Szűrés</div>
     </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-dot" onclick="document.getElementById('sec-results').scrollIntoView({behavior:'smooth'})">
+      <div class="step-dot-circle">4</div>
+      <div class="step-dot-label">Találatok</div>
+    </div>
+  </div>
 
-    <div class="section" id="sec-filter">
-      <div class="section-label">
-        <span class="section-num">03</span>
-        <span class="section-title">Betűk szűrése</span>
+  <div class="section" id="sec-length">
+    <div class="section-label">
+      <span class="section-num">01</span>
+      <span class="section-title">Szó hossza</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="length-row">
+      <div class="length-stepper">
+        <button class="num-btn" id="btn-minus" aria-label="Csökkent">−</button>
+        <div class="len-display" id="len-display">6</div>
+        <button class="num-btn" id="btn-plus" aria-label="Növel">+</button>
       </div>
-      <div class="section-divider"></div>
-      <div class="card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <span class="filter-label" style="display:flex;align-items:center;gap:6px;">
-              Kizárt betűk
-              <span class="info-btn" id="excl-info-btn" tabindex="0" aria-label="Infó">ⓘ
-                <span class="info-tooltip">Ha egy betű szerepel a Zöld vagy Sárga mezőben <em>és</em> a Kizárt listában is, az azt jelenti, hogy a szóban <strong>pontosan 1 darab</strong> ilyen betű van.</span>
-              </span>
+      <span class="length-hint">betű</span>
+    </div>
+  </div>
+
+  <div class="section" id="sec-slots">
+    <div class="section-label">
+      <span class="section-num">02</span>
+      <span class="section-title">Ismert betűk pozíció szerint</span>
+    </div>
+    <div class="section-divider"></div>
+    <div id="slots-grid"></div>
+  </div>
+
+  <div class="section" id="sec-filter">
+    <div class="section-label">
+      <span class="section-num">03</span>
+      <span class="section-title">Betűk szűrése</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label" style="display:flex;align-items:center;gap:6px;">
+            Kizárt betűk
+            <span class="info-btn" id="excl-info-btn" tabindex="0" aria-label="Infó">ⓘ
+              <span class="info-tooltip">Ha egy betű szerepel a Zöld vagy Sárga mezőben <em>és</em> a Kizárt listában is, az azt jelenti, hogy a szóban <strong>pontosan 1 darab</strong> ilyen betű van.</span>
             </span>
-            <input type="text" id="excluded-input" placeholder="pl. aeiou" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <div class="pills-row" id="excluded-pills"></div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label">Kötelező betűk</span>
-            <input type="text" id="required-input" placeholder="pl. r" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <div class="pills-row" id="required-pills"></div>
-          </div>
+          </span>
+          <input type="text" id="excluded-input" placeholder="pl. aeiou" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div class="pills-row" id="excluded-pills"></div>
         </div>
-        <div class="yellow-filter-section">
-          <div class="yellow-filter-label">
-            <span class="yellow-badge"></span>
-            Van benne, de más helyen (sárga betűk)
-          </div>
-          <div id="yellow-slots-grid"></div>
+        <div class="filter-group">
+          <span class="filter-label">Kötelező betűk</span>
+          <input type="text" id="required-input" placeholder="pl. r" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div class="pills-row" id="required-pills"></div>
         </div>
       </div>
-    </div>
-
-    <div class="section" id="sec-results">
-      <div class="section-label">
-        <span class="section-num">04</span>
-        <span class="section-title">Találatok</span>
-      </div>
-      <div class="section-divider"></div>
-      <div class="search-btn-wrap" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <button class="search-btn" id="search-btn" onclick="search()">
-          Keresés <span class="btn-icon">→</span>
-        </button>
-        <button onclick="clearAll()" style="display:flex;align-items:center;gap:6px;background:rgba(255,80,80,0.09);border:1px solid rgba(255,80,80,0.22);border-radius:var(--radius);color:rgba(255,130,130,0.85);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:var(--transition);white-space:nowrap;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='rgba(255,80,80,0.18)'" onmouseout="this.style.background='rgba(255,80,80,0.09)'">
-          ✕ Töröl
-        </button>
-      </div>
-      <div class="loading-bar" id="loading-bar"></div>
-      <div id="results"></div>
-    </div>
-
-  </div>
-</div>
-
-<div id="screen-games">
-  <div class="games-app">
-    <button class="games-back-btn" onclick="goHome()">← Vissza a Szókeresőhöz</button>
-    <div class="games-header">
-      <div class="games-eyebrow">Lexikon · Játékok</div>
-      <div class="games-title">Magyar Szójátékok</div>
-      <div class="games-sub">Válassz egy játékot az alábbiak közül</div>
-    </div>
-    <div class="games-grid">
-      <div class="game-card" style="--card-glow:rgba(100,220,160,0.1);--card-border:rgba(100,220,160,0.35);" onclick="showWordle()">
-        <span class="game-icon">🟩</span>
-        <span class="game-badge">Szókirakó</span>
-        <div class="game-name">Wordle</div>
-        <div class="game-desc">Találd meg a rejtett szót 6 próbálkozásból. Minden tipp után színes jelzéseket kapsz.</div>
-        <span class="game-launch-tag" style="display:inline-flex;align-items:center;gap:5px;margin-top:14px;color:rgba(100,220,160,0.85);background:rgba(100,220,160,0.09);border:1px solid rgba(100,220,160,0.28);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">▶ Játék indítása</span>
-      </div>
-      <div class="game-card" style="--card-glow:rgba(168,148,255,0.1);--card-border:rgba(168,148,255,0.35);" onclick="showSzamBetu()">
-        <span class="game-icon">🔢</span>
-        <span class="game-badge">Rejtvény</span>
-        <div class="game-name">Szám = Betű</div>
-        <div class="game-desc">Minden szám egy betűt jelöl. Fejtsd meg a titkos keresztrejtvényt logikai gondolkodással.</div>
-        <span class="game-launch-tag" style="display:inline-flex;align-items:center;gap:5px;margin-top:14px;color:rgba(168,148,255,0.85);background:rgba(168,148,255,0.09);border:1px solid rgba(168,148,255,0.28);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">▶ Játék indítása</span>
-      </div>
-      <div class="game-card" style="--card-glow:rgba(245,200,66,0.1);--card-border:rgba(245,200,66,0.35);" onclick="comingSoon('Szókereső')">
-        <span class="game-icon">🔍</span>
-        <span class="game-badge">Szókirakó</span>
-        <div class="game-name">Szókereső</div>
-        <div class="game-desc">Találd meg az összes rejtett szót a betűrácsban — vízszintesen, függőlegesen, átlósan.</div>
-        <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
-      </div>
-      <div class="game-card" style="--card-glow:rgba(201,169,110,0.1);--card-border:rgba(201,169,110,0.35);" onclick="comingSoon('Words of Wonders')">
-        <span class="game-icon">✨</span>
-        <span class="game-badge">Keresztrejtvény</span>
-        <div class="game-name">Words of Wonders</div>
-        <div class="game-desc">Alkoss szavakat a megadott betűkből, és töltsd ki a keresztrejtvény-szerű táblát.</div>
-        <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+      <div class="yellow-filter-section">
+        <div class="yellow-filter-label">
+          <span class="yellow-badge"></span>
+          Van benne, de más helyen (sárga betűk)
+        </div>
+        <div id="yellow-slots-grid"></div>
       </div>
     </div>
   </div>
-</div>
 
-<div id="screen-wordle">
-  <div class="wordle-app">
-    <div class="wordle-header">
-      <button class="wordle-back-btn" onclick="closeWordle()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8l4-4"/></svg>
-        Vissza
+  <div class="section" id="sec-results">
+    <div class="section-label">
+      <span class="section-num">04</span>
+      <span class="section-title">Találatok</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="search-btn-wrap" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <button class="search-btn" id="search-btn" onclick="search()">
+        Keresés <span class="btn-icon">→</span>
       </button>
-      <div class="wordle-title-wrap">
-        <span class="wordle-eyebrow">Lexikon · Játék</span>
-        <span class="wordle-title-text">Wordle</span>
-      </div>
-      <button class="wordle-new-btn" onclick="startNewGame()">
-        Új játék
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M13 3v5h-5"/></svg>
+      <button onclick="clearAll()" style="display:flex;align-items:center;gap:6px;background:rgba(255,80,80,0.09);border:1px solid rgba(255,80,80,0.22);border-radius:var(--radius);color:rgba(255,130,130,0.85);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:var(--transition);white-space:nowrap;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='rgba(255,80,80,0.18)'" onmouseout="this.style.background='rgba(255,80,80,0.09)'">
+        ✕ Töröl
       </button>
     </div>
-    <div class="wordle-len-row" id="wordle-len-row"></div>
-    <div class="wordle-status" id="wordle-status">
-      <span id="wordle-status-text">Töltés...</span>
-    </div>
-    <div class="wordle-grid-wrap">
-      <div class="wordle-grid" id="wordle-grid"></div>
-    </div>
-    <div class="wordle-msg" id="wordle-msg"></div>
-    <div class="wordle-keyboard" id="wordle-keyboard"></div>
+    <div class="loading-bar" id="loading-bar"></div>
+    <div id="results"></div>
   </div>
-</div>
 
-<div id="screen-szambetu">
-  <div class="sb-app">
-
-    <div class="sb-header">
-      <button class="sb-back-btn" onclick="closeSzamBetu()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8l4-4"/></svg>
-        Vissza
-      </button>
-      <div class="sb-title-wrap">
-        <span class="sb-eyebrow">Lexikon · Rejtvény</span>
-        <span class="sb-title">Szám = Betű</span>
-      </div>
-      <button class="sb-new-btn" onclick="startSzamBetu()">
-        Új rejtvény
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M13 3v5h-5"/></svg>
-      </button>
-    </div>
-
-    <div class="sb-diff-row">
-      <span class="sb-diff-label">Nehézség:</span>
-      <div class="sb-diff-chips" id="sb-difficulty-chips"></div>
-    </div>
-
-    <div class="sb-status-row">
-      <div class="sb-progress-bar"><div class="sb-progress-fill" id="sb-progress-fill"></div></div>
-      <div class="sb-status-text" id="sb-status-text">Betöltés...</div>
-    </div>
-
-    <div class="sb-helpers">
-      <button class="sb-help-btn sb-help-btn-hint" onclick="sbHint()">
-        💡 Segítség (random betű)
-      </button>
-      <button class="sb-help-btn sb-help-btn-solve" onclick="sbSolveAll()">
-        🏳 Szabad a gazda
-      </button>
-    </div>
-
-    <div class="sb-grid-wrap">
-      <div class="sb-grid" id="sb-grid"></div>
-    </div>
-
-    <div class="sb-key-section">
-      <div class="sb-key-label">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
-        Betűkulcs — kattints egy számra, majd gépelj
-      </div>
-      <div class="sb-key-grid" id="sb-key-grid"></div>
-    </div>
-
-    <div class="sb-input-hint" id="sb-input-hint">Kattints egy számra a kiválasztáshoz</div>
-
-  </div>
-</div>
-
-<div class="sb-win" id="sb-win">
-  <div class="sb-win-card">
-    <span class="sb-win-emoji">🏆</span>
-    <div class="sb-win-title">Megfejtve!</div>
-    <div class="sb-win-stat" id="sb-win-stat"></div>
-    <button class="sb-win-btn" onclick="startSzamBetu()">↻ &nbsp;Új rejtvény</button>
-  </div>
 </div>
 
 <div class="confirm-overlay" id="confirm-overlay">
@@ -317,7 +180,5 @@
 
 <script src="js/nav.js"></script>
 <script src="js/search.js"></script>
-<script src="js/wordle.js"></script>
-<script src="js/szambetu.js"></script>
 </body>
 </html>

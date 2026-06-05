@@ -221,6 +221,27 @@
 @keyframes rowShake   { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-6px)} 30%{transform:translateX(6px)} 45%{transform:translateX(-5px)} 60%{transform:translateX(5px)} 75%{transform:translateX(-3px)} 90%{transform:translateX(3px)} }
 @keyframes cellBounce { 0%{transform:translateY(0)} 35%{transform:translateY(-14px)} 65%{transform:translateY(-6px)} 82%{transform:translateY(-2px)} 100%{transform:translateY(0)} }
 
+.wordle-apply-btn {
+  background: rgba(100,220,160,0.12);
+  border: 1px solid rgba(100,220,160,0.38);
+  border-radius: var(--radius);
+  color: rgba(100,220,160,0.92);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.wordle-apply-btn:hover {
+  background: rgba(100,220,160,0.22);
+  border-color: rgba(100,220,160,0.6);
+}
+
 @media (max-width: 480px) {
   .wordle-app { padding: calc(var(--header-h) + 4px) 4px 0; }
   .wordle-header { margin-bottom: 4px; gap: 4px; }
@@ -229,6 +250,7 @@
   .wordle-len-row { margin-bottom: 3px; gap: 5px; }
   .wordle-len-label { font-size: 9px; }
   .wordle-len-slider::-webkit-slider-thumb { width: 18px; height: 18px; }
+  .wordle-apply-btn { font-size: 10px; padding: 5px 9px; }
   .wordle-keyboard { padding: 4px 3px max(8px, env(safe-area-inset-bottom, 8px)); }
   .wkey-row { gap: 3px; margin-bottom: 3px; }
   .wordle-result-overlay { border-radius: 10px; }

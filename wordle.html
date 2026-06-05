@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lexikon — Wordle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/wordle.css">
+<style>
+  body { overflow: hidden; }
+  /* Standalone page: screen always visible */
+  #screen-wordle {
+    position: relative;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: all !important;
+    visibility: visible !important;
+    inset: auto;
+    width: 100%;
+    height: 100dvh;
+  }
+  .wordle-keyboard { display: block !important; }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav class="topbar" id="topbar">
+  <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
+    <div class="topbar-logo-icon">✦</div>
+    <div class="topbar-logo-text">
+      <span class="topbar-logo-main">Lexikon</span>
+      <span class="topbar-logo-sub">Magyar Szójátékok</span>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <a href="games.html" class="topbar-games-btn" style="text-decoration:none;">
+    🎮 <span>Játékok</span>
+  </a>
+</nav>
+
+<div id="screen-wordle" class="visible">
+  <div class="wordle-app">
+    <div class="wordle-header">
+      <a href="games.html" class="wordle-back-btn" style="text-decoration:none;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8l4-4"/></svg>
+        Vissza
+      </a>
+      <div class="wordle-title-wrap">
+        <span class="wordle-eyebrow">Lexikon · Játék</span>
+        <span class="wordle-title-text">Wordle</span>
+      </div>
+      <button class="wordle-new-btn" onclick="startNewGame()">
+        Új játék
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M13 3v5h-5"/></svg>
+      </button>
+    </div>
+    <div class="wordle-len-row" id="wordle-len-row"></div>
+    <div class="wordle-status" id="wordle-status">
+      <span id="wordle-status-text">Töltés...</span>
+    </div>
+    <div class="wordle-grid-wrap">
+      <div class="wordle-grid" id="wordle-grid"></div>
+    </div>
+    <div class="wordle-msg" id="wordle-msg"></div>
+    <div class="wordle-keyboard" id="wordle-keyboard"></div>
+  </div>
+</div>
+
+<script src="js/nav.js"></script>
+<script>
+  // ── Standalone shims ──────────────────────────────────
+  let currentScreen = 'wordle';
+  let loaded = false;
+  let wordList = [];
+
+  const FALLBACK_URL = 'https://gist.githubusercontent.com/Konstantinusz/f9517357e46fa827c3736031ac8d01c7/raw/fc98429a6357d1c4fcc644e1b70c2431bd046cf0/magyar-szavak.txt';
+  const RAW_BASE = 'https://raw.githubusercontent.com/laszlonemeth/magyarispell/master/szotar/';
+  const MODULE_URLS = {
+    biologia:   RAW_BASE+'biologia/fonev.1',
+    fizika:     RAW_BASE+'fizika/fonev.1',
+    foldrajz:   RAW_BASE+'foldrajz/fonev.1',
+    informatika:RAW_BASE+'informatika/fonev.1',
+    kemia:      RAW_BASE+'kemia/fonev.1',
+    matematika: RAW_BASE+'matematika/fonev.1',
+    sport:      RAW_BASE+'sport/fonev.1',
+    zene:       RAW_BASE+'zene/fonev.1',
+    idegen:     RAW_BASE+'idegen/fonev.1',
+    ifjusagi:   RAW_BASE+'ifjusagi/fonev.1',
+    regies:     RAW_BASE+'regies/fonev.1',
+  };
+  async function tryFetch(url) {
+    try { const r = await fetch(url); if (!r.ok) return null; return await r.text(); }
+    catch { return null; }
+  }
+  async function loadWords() {
+    if (loaded) return;
+    let mainText = await tryFetch(FALLBACK_URL);
+    if (!mainText) throw new Error('Szólista hiba');
+    const rawWords = mainText.split('\n').map(l => {
+      const slash = l.indexOf('/');
+      return (slash > -1 ? l.slice(0, slash) : l).trim().toLowerCase();
+    }).filter(w => w.length > 0 && !w.startsWith('#') && /^[a-záéíóöőúüű]+$/i.test(w));
+    const wordSet = new Set(rawWords);
+    const wordModuleMap = {};
+    wordSet.forEach(w => { wordModuleMap[w] = ['alap']; });
+    const fetchPromises = Object.entries(MODULE_URLS).map(async ([modId, url]) => {
+      const text = await tryFetch(url); if (!text) return;
+      text.split('\n').forEach(line => {
+        const word = line.trim().split(/\s+/)[0].toLowerCase();
+        if (!word || word.startsWith('#') || !/^[a-záéíóöőúüű]+$/i.test(word)) return;
+        if (wordModuleMap[word]) { if (!wordModuleMap[word].includes(modId)) wordModuleMap[word].push(modId); }
+        else { wordModuleMap[word] = [modId]; wordSet.add(word); }
+      });
+    });
+    await Promise.allSettled(fetchPromises);
+    wordList = [...wordSet].map(w => ({ word: w, modules: wordModuleMap[w] || ['alap'] }));
+    loaded = true;
+  }
+</script>
+<script src="js/wordle.js"></script>
+<script>
+  // Double rAF: ensures the browser has completed a full layout pass
+  // before initWordle reads DOM dimensions — this fixes the missing grid styles.
+  requestAnimationFrame(() => requestAnimationFrame(() => initWordle()));
+</script>
+</body>
+</html>

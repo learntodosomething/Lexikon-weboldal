@@ -19,6 +19,72 @@ let currentLen = 6;
 let activeCategories = new Set();
 let holdTimer = null, holdInterval = null;
 
+// ── LocalStorage: Szókereső állapot mentése ───────────
+const SEARCH_SAVE_KEY = 'lexikon_search_state';
+
+function searchSave() {
+  try {
+    const slots = {};
+    for (let i = 0; i < currentLen; i++) {
+      const v = document.getElementById('slot-' + i)?.value?.trim();
+      if (v) slots[i] = v;
+    }
+    const yslots = {};
+    for (let i = 0; i < currentLen; i++) {
+      const v = document.getElementById('yslot-' + i)?.value?.trim();
+      if (v) yslots[i] = v;
+    }
+    localStorage.setItem(SEARCH_SAVE_KEY, JSON.stringify({
+      currentLen,
+      slots,
+      yslots,
+      excluded: document.getElementById('excluded-input')?.value || '',
+      required: document.getElementById('required-input')?.value || '',
+    }));
+  } catch(e) {}
+}
+
+function searchLoad() {
+  try {
+    const raw = localStorage.getItem(SEARCH_SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.currentLen && d.currentLen !== currentLen) {
+      currentLen = d.currentLen;
+      document.getElementById('len-display').textContent = currentLen;
+    }
+    // Restore slot values after slots are generated
+    window._searchRestoreData = d;
+  } catch(e) {}
+}
+
+function searchRestoreSlots() {
+  const d = window._searchRestoreData;
+  if (!d) return;
+  if (d.slots) {
+    Object.entries(d.slots).forEach(([i, v]) => {
+      const inp = document.getElementById('slot-' + i);
+      if (inp) { inp.value = v.toUpperCase(); inp.classList.add('filled'); }
+    });
+  }
+  if (d.yslots) {
+    Object.entries(d.yslots).forEach(([i, v]) => {
+      const inp = document.getElementById('yslot-' + i);
+      if (inp) { inp.value = v.toUpperCase(); inp.classList.add('has-value'); }
+    });
+  }
+  if (d.excluded) {
+    const el = document.getElementById('excluded-input');
+    if (el) { el.value = d.excluded; updatePills('excluded-input','excluded-pills','pill-excluded'); }
+  }
+  if (d.required) {
+    const el = document.getElementById('required-input');
+    if (el) { el.value = d.required; updatePills('required-input','required-pills','pill-required'); }
+  }
+  window._searchRestoreData = null;
+}
+
+
 function setLen(v) {
   v = Math.max(1, Math.min(40, v));
   if (v === currentLen) return;
@@ -26,6 +92,7 @@ function setLen(v) {
   document.getElementById('len-display').textContent = v;
   generateSlots();
   generateYellowSlots();
+  searchSave();
 }
 function stepLen(delta) { setLen(currentLen + delta); }
 function startHold(delta) {
@@ -72,6 +139,7 @@ function generateSlots() {
       inp.value = inp.value.toUpperCase();
       inp.classList.toggle('filled', inp.value.trim() !== '');
       if (inp.value.length >= 1) { const next = document.getElementById('slot-' + (i + 1)); if (next) next.focus(); }
+      searchSave();
     });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Backspace' && inp.value === '') { const prev = document.getElementById('slot-' + (i - 1)); if (prev) prev.focus(); }
@@ -81,7 +149,9 @@ function generateSlots() {
   }
   setStep(1);
   loadWords().catch(() => {});
+  searchRestoreSlots();
 }
+searchLoad();
 generateSlots();
 
 function generateYellowSlots() {
@@ -107,6 +177,7 @@ function generateYellowSlots() {
     inp.addEventListener('input', () => {
       inp.value = inp.value.toUpperCase().replace(/[^A-ZÁÉÍÓÖŐÚÜŰ]/g, '');
       inp.classList.toggle('has-value', inp.value.trim() !== '');
+      searchSave();
     });
     inp.addEventListener('keydown', e => {
       if (e.key === 'Backspace' && inp.value === '') { const prev = document.getElementById('yslot-' + (i - 1)); if (prev) prev.focus(); }
@@ -153,8 +224,8 @@ function updatePills(inputId, pillsId, cls) {
     pills.appendChild(span);
   });
 }
-document.getElementById('excluded-input').addEventListener('input', () => updatePills('excluded-input','excluded-pills','pill-excluded'));
-document.getElementById('required-input').addEventListener('input', () => updatePills('required-input','required-pills','pill-required'));
+document.getElementById('excluded-input').addEventListener('input', () => { updatePills('excluded-input','excluded-pills','pill-excluded'); searchSave(); });
+document.getElementById('required-input').addEventListener('input', () => { updatePills('required-input','required-pills','pill-required'); searchSave(); });
 
 function normalize(s) { return s.toLowerCase(); }
 
@@ -192,6 +263,7 @@ function clearAll() {
     document.getElementById('required-pills').innerHTML = '';
     document.getElementById('results').innerHTML = '';
     activeCategories.clear();
+    try { localStorage.removeItem(SEARCH_SAVE_KEY); } catch(e) {}
     showToast('✓ Mezők törölve');
   });
 }

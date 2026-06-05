@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lexikon — Játékok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/games.css">
+</head>
+<body>
+<div class="noise"></div>
+
+<nav class="topbar" id="topbar">
+  <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
+    <div class="topbar-logo-icon">✦</div>
+    <div class="topbar-logo-text">
+      <span class="topbar-logo-main">Lexikon</span>
+      <span class="topbar-logo-sub">Magyar Szójátékok</span>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <a href="index.html" class="topbar-games-btn" style="text-decoration:none;">
+    🔍 <span>Szókereső</span>
+  </a>
+</nav>
+
+<div class="games-app">
+  <a href="index.html" class="games-back-btn">← Vissza a Szókeresőhöz</a>
+
+  <div class="games-header">
+    <div class="games-eyebrow">Lexikon · Játékok</div>
+    <div class="games-title">Magyar Szójátékok</div>
+    <div class="games-sub">Válassz egy játékot az alábbiak közül</div>
+  </div>
+
+  <div class="games-grid">
+    <a href="wordle.html" class="game-card" style="--card-glow:rgba(100,220,160,0.1);--card-border:rgba(100,220,160,0.35);text-decoration:none;">
+      <span class="game-icon">🟩</span>
+      <span class="game-badge">Szókirakó</span>
+      <div class="game-name">Wordle</div>
+      <div class="game-desc">Találd meg a rejtett szót 6 próbálkozásból. Minden tipp után színes jelzéseket kapsz.</div>
+      <span class="game-launch-tag" style="display:inline-flex;align-items:center;gap:5px;margin-top:14px;color:rgba(100,220,160,0.85);background:rgba(100,220,160,0.09);border:1px solid rgba(100,220,160,0.28);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">▶ Játék indítása</span>
+    </a>
+
+    <a href="szambetu.html" class="game-card" style="--card-glow:rgba(168,148,255,0.1);--card-border:rgba(168,148,255,0.35);text-decoration:none;">
+      <span class="game-icon">🔢</span>
+      <span class="game-badge">Rejtvény</span>
+      <div class="game-name">Szám = Betű</div>
+      <div class="game-desc">Minden szám egy betűt jelöl. Fejtsd meg a titkos keresztrejtvényt logikai gondolkodással.</div>
+      <span class="game-launch-tag" style="display:inline-flex;align-items:center;gap:5px;margin-top:14px;color:rgba(168,148,255,0.85);background:rgba(168,148,255,0.09);border:1px solid rgba(168,148,255,0.28);border-radius:6px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;">▶ Játék indítása</span>
+    </a>
+
+    <div class="game-card" style="--card-glow:rgba(245,200,66,0.1);--card-border:rgba(245,200,66,0.35);" onclick="comingSoon('Szókereső')">
+      <span class="game-icon">🔍</span>
+      <span class="game-badge">Szókirakó</span>
+      <div class="game-name">Szókereső</div>
+      <div class="game-desc">Találd meg az összes rejtett szót a betűrácsban — vízszintesen, függőlegesen, átlósan.</div>
+      <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+    </div>
+
+    <div class="game-card" style="--card-glow:rgba(201,169,110,0.1);--card-border:rgba(201,169,110,0.35);" onclick="comingSoon('Words of Wonders')">
+      <span class="game-icon">✨</span>
+      <span class="game-badge">Keresztrejtvény</span>
+      <div class="game-name">Words of Wonders</div>
+      <div class="game-desc">Alkoss szavakat a megadott betűkből, és töltsd ki a keresztrejtvény-szerű táblát.</div>
+      <span class="game-coming"><span class="game-coming-dot"></span> Hamarosan</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/nav.js"></script>
+</body>
+</html>

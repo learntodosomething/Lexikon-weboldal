@@ -1,5 +1,11 @@
+// ═══════════════════════════════════════════════════════
+//  wordle.js  —  standalone, localStorage-alapú mentéssel
+// ═══════════════════════════════════════════════════════
+
+const W_SAVE_KEY = 'lexikon_wordle_state';
+
 let wWordList = [], wAllWords = [];
-let wloaded = false, wWordLen = 5, wMaxGuesses = 6;
+let wloaded = false, wWordLen = 5, wPendingLen = 5, wMaxGuesses = 6;
 let wSecret = '', wGuesses = [], wCurrentGuess = '', wGameOver = false;
 let wKeyState = {}, wLoadingWords = false;
 
@@ -10,46 +16,63 @@ const HU_ROWS = [
   ['y','x','c','v','b','n','m','ENTER'],
 ];
 
-function showWordle() {
-  currentScreen = 'wordle';
-  document.getElementById('screen-main').classList.add('hidden');
-  document.getElementById('screen-games').classList.remove('visible');
-  document.getElementById('screen-wordle').classList.add('visible');
-  document.getElementById('screen-szambetu').classList.remove('visible');
-  document.getElementById('topbar-games-btn').style.display = 'none';
-  window.scrollTo(0, 0);
-  if (typeof sbHandleKey !== 'undefined') document.removeEventListener('keydown', sbHandleKey);
-  if (!wloaded) {
-    initWordle();
-  } else {
-    document.removeEventListener('keydown', wHandleKey);
-    if (!wGameOver) document.addEventListener('keydown', wHandleKey);
-  }
+// ── LocalStorage ─────────────────────────────────────
+function wSave() {
+  try {
+    localStorage.setItem(W_SAVE_KEY, JSON.stringify({
+      wWordLen, wSecret, wGuesses, wCurrentGuess, wGameOver, wKeyState
+    }));
+  } catch(e) {}
 }
 
-function closeWordle() {
-  currentScreen = 'games';
-  document.getElementById('screen-wordle').classList.remove('visible');
-  document.getElementById('screen-games').classList.add('visible');
-  document.getElementById('topbar-games-btn').style.display = '';
-  document.body.style.overflow = '';
-  window.scrollTo(0, 0);
-  document.removeEventListener('keydown', wHandleKey);
+function wLoad() {
+  try {
+    const raw = localStorage.getItem(W_SAVE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    wWordLen    = d.wWordLen    || 5;
+    wPendingLen = wWordLen;
+    wSecret     = d.wSecret     || '';
+    wGuesses    = d.wGuesses    || [];
+    wCurrentGuess = d.wCurrentGuess || '';
+    wGameOver   = d.wGameOver   || false;
+    wKeyState   = d.wKeyState   || {};
+    return !!wSecret;
+  } catch(e) { return false; }
 }
 
+// ── Init ─────────────────────────────────────────────
 async function initWordle() {
   buildLenSlider();
-  computeAndApplyLayout();
-  buildKeyboard();
   await loadWordleWords();
-  startNewGame();
+
+  const restored = wLoad();
+  if (restored && wAllWords.length > 0 && wAllWords.includes(wSecret)) {
+    // Restore saved game
+    computeAndApplyLayout();
+    buildGrid();
+    buildKeyboard();
+    updateGrid();
+    updateKeyboard();
+    setWordleStatus(wWordLen + ' betűs szó · ' + wMaxGuesses + ' kísérlet');
+    syncSliderToLen();
+    if (!wGameOver) {
+      document.addEventListener('keydown', wHandleKey);
+    } else {
+      setTimeout(() => showResult(wGuesses[wGuesses.length-1] === wSecret, wGuesses.length), 300);
+    }
+  } else {
+    startNewGame();
+  }
 }
 
 async function loadWordleWords() {
   if (wloaded) return;
   wLoadingWords = true;
   setWordleStatus('Szólista betöltése...');
-  if (!loaded) { try { await loadWords(); } catch(e) {} }
+  if (typeof loaded !== 'undefined' && !loaded) {
+    try { await loadWords(); } catch(e) {}
+  }
   wAllWords = wordList
     .map(e => (typeof e === 'object' ? e.word : e).toLowerCase())
     .filter(w => /^[a-záéíóöőúüű]+$/.test(w));
@@ -59,6 +82,7 @@ async function loadWordleWords() {
 
 function getWordleWordsForLen(len) { return wAllWords.filter(w => w.length === len); }
 
+// ── Slider (preview only) + Apply button ─────────────
 function buildLenSlider() {
   const row = document.getElementById('wordle-len-row');
   row.innerHTML = '';
@@ -69,14 +93,14 @@ function buildLenSlider() {
 
   const slider = document.createElement('input');
   slider.type = 'range';
-  slider.min = 4; slider.max = 12; slider.value = wWordLen;
+  slider.min = 4; slider.max = 12; slider.value = wPendingLen;
   slider.className = 'wordle-len-slider';
   slider.id = 'wordle-len-slider';
 
   const val = document.createElement('span');
   val.className = 'wordle-len-val';
   val.id = 'wordle-len-val';
-  val.textContent = wWordLen;
+  val.textContent = wPendingLen;
 
   const updateFill = () => {
     const pct = ((slider.value - 4) / (12 - 4)) * 100;
@@ -84,20 +108,50 @@ function buildLenSlider() {
   };
   updateFill();
 
-  slider.addEventListener('input', () => { val.textContent = slider.value; updateFill(); });
-  slider.addEventListener('change', () => {
-    const newLen = parseInt(slider.value);
-    if (newLen === wWordLen) return;
-    wWordLen = newLen;
-    computeAndApplyLayout();
+  // Only update preview number, NOT the actual game
+  slider.addEventListener('input', () => {
+    wPendingLen = parseInt(slider.value);
+    val.textContent = wPendingLen;
+    updateFill();
+    applyBtn.style.opacity = wPendingLen !== wWordLen ? '1' : '0.45';
+    applyBtn.style.pointerEvents = wPendingLen !== wWordLen ? 'all' : 'none';
+  });
+
+  // Apply button
+  const applyBtn = document.createElement('button');
+  applyBtn.className = 'wordle-apply-btn';
+  applyBtn.id = 'wordle-apply-btn';
+  applyBtn.textContent = 'Alkalmaz';
+  applyBtn.style.opacity = '0.45';
+  applyBtn.style.pointerEvents = 'none';
+  applyBtn.addEventListener('click', () => {
+    if (wPendingLen === wWordLen) return;
+    wWordLen = wPendingLen;
+    applyBtn.style.opacity = '0.45';
+    applyBtn.style.pointerEvents = 'none';
     startNewGame();
   });
 
   row.appendChild(label);
   row.appendChild(slider);
   row.appendChild(val);
+  row.appendChild(applyBtn);
 }
 
+function syncSliderToLen() {
+  const slider = document.getElementById('wordle-len-slider');
+  const val    = document.getElementById('wordle-len-val');
+  const btn    = document.getElementById('wordle-apply-btn');
+  if (!slider) return;
+  slider.value = wWordLen;
+  if (val) val.textContent = wWordLen;
+  if (btn) { btn.style.opacity = '0.45'; btn.style.pointerEvents = 'none'; }
+  const pct = ((wWordLen - 4) / (12 - 4)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+  wPendingLen = wWordLen;
+}
+
+// ── New game ─────────────────────────────────────────
 async function startNewGame() {
   if (wLoadingWords) return;
   if (!wloaded) { await loadWordleWords(); }
@@ -106,6 +160,10 @@ async function startNewGame() {
   if (pool.length === 0) { setWordleStatus('Nincs ' + wWordLen + ' betűs szó.'); return; }
   wSecret = pool[Math.floor(Math.random() * pool.length)];
   wGuesses = []; wCurrentGuess = ''; wGameOver = false; wKeyState = {};
+  syncSliderToLen();
+
+  // Force layout BEFORE building grid so sizes are available
+  document.body.offsetHeight; // reflow trigger
   computeAndApplyLayout();
   buildGrid();
   buildKeyboard();
@@ -114,8 +172,10 @@ async function startNewGame() {
   hideMsg();
   document.removeEventListener('keydown', wHandleKey);
   document.addEventListener('keydown', wHandleKey);
+  wSave();
 }
 
+// ── Layout ────────────────────────────────────────────
 function computeAndApplyLayout() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -123,24 +183,23 @@ function computeAndApplyLayout() {
   const isTiny   = vw <= 375;
 
   const headerH = isTiny ? 48 : (isMobile ? 50 : 58);
-  const topPad  = isMobile ? 4 : 8;
   const appMaxW = Math.min(vw, 520);
   const appPadH = isMobile ? 4 : 8;
 
   const headerRowH = isMobile ? 36 : 44;
-  const sliderRowH = isMobile ? 22 : 28;
+  const sliderRowH = isMobile ? 26 : 32;
   const statusH    = isMobile ? 14 : 18;
   const headerMb   = isMobile ? 4 : 6;
   const sliderMb   = isMobile ? 3 : 4;
   const statusMb   = 3;
 
-  const numKeyRows = HU_ROWS.length; // 4
+  const numKeyRows = HU_ROWS.length;
   const keyGap     = isTiny ? 2 : (isMobile ? 3 : 5);
   const kbPadTop   = isMobile ? 4 : 6;
-  const kbPadBot   = Math.max(isMobile ? 8 : 12, 0); // safe area handled by CSS
+  const kbPadBot   = Math.max(isMobile ? 8 : 12, 0);
   const kbBorderTop = 1;
 
-  const overhead = headerH + topPad + headerRowH + headerMb + sliderRowH + sliderMb + statusH + statusMb;
+  const overhead = headerH + headerRowH + headerMb + sliderRowH + sliderMb + statusH + statusMb + (isMobile ? 4 : 8);
 
   const maxKH = isMobile ? 46 : 54;
   const minKH = isMobile ? 30 : 40;
@@ -169,8 +228,8 @@ function computeAndApplyLayout() {
 
   bestCell = Math.max(isMobile ? 22 : 28, Math.floor(bestCell));
 
-  document.documentElement.style.setProperty('--wkey-h', bestKH + 'px');
-  document.documentElement.style.setProperty('--wkey-fs', Math.max(10, Math.floor(bestKH * 0.28)) + 'px');
+  document.documentElement.style.setProperty('--wkey-h',   bestKH + 'px');
+  document.documentElement.style.setProperty('--wkey-fs',  Math.max(10, Math.floor(bestKH * 0.28)) + 'px');
   document.documentElement.style.setProperty('--wkey-gap', keyGap + 'px');
 
   return { cellSize: bestCell, cellGap: bestCellGap };
@@ -197,8 +256,8 @@ function buildGrid() {
       const cell = document.createElement('div');
       cell.className = 'wordle-cell';
       cell.id = `wcell-${r}-${c}`;
-      cell.style.width = cellSize + 'px';
-      cell.style.height = cellSize + 'px';
+      cell.style.width    = cellSize + 'px';
+      cell.style.height   = cellSize + 'px';
       cell.style.fontSize = fontSize + 'px';
       cell.style.borderRadius = br + 'px';
       row.appendChild(cell);
@@ -212,7 +271,8 @@ function updateGrid() {
     const result = scoreGuess(guess, wSecret);
     for (let c = 0; c < wWordLen; c++) {
       const cell = document.getElementById(`wcell-${r}-${c}`); if (!cell) continue;
-      cell.textContent = guess[c].toUpperCase(); cell.className = 'wordle-cell ' + result[c];
+      cell.textContent = guess[c].toUpperCase();
+      cell.className = 'wordle-cell ' + result[c];
     }
   });
   const r = wGuesses.length;
@@ -263,6 +323,7 @@ function wSubmit() {
     if (won) { wGameOver = true; bounceRow(r, () => showResult(true, r + 1)); }
     else if (wGuesses.length >= wMaxGuesses) { wGameOver = true; setTimeout(() => showResult(false, 0), 800); }
     else updateGrid();
+    wSave();
   });
 }
 
@@ -308,7 +369,6 @@ function showResult(won, guessCount) {
   const overlay = document.createElement('div');
   overlay.id = 'wordle-result-panel';
   overlay.className = 'wordle-result-overlay';
-
   overlay.innerHTML = `
     <div class="wordle-result-inner">
       <span class="wordle-result-emoji">${emoji}</span>
@@ -318,13 +378,12 @@ function showResult(won, guessCount) {
       <button class="wordle-result-btn" onclick="startNewGame()">↻ &nbsp;Új játék</button>
     </div>
   `;
-
   const gridWrap = document.querySelector('.wordle-grid-wrap');
   gridWrap.style.position = 'relative';
   gridWrap.appendChild(overlay);
-
   document.removeEventListener('keydown', wHandleKey);
 }
+
 function hideResult() {
   const old = document.getElementById('wordle-result-panel'); if (old) old.remove();
 }
@@ -332,7 +391,6 @@ function hideResult() {
 function buildKeyboard() {
   const kb = document.getElementById('wordle-keyboard');
   kb.innerHTML = '';
-
   HU_ROWS.forEach(row => {
     const rowEl = document.createElement('div');
     rowEl.className = 'wkey-row';
@@ -340,7 +398,7 @@ function buildKeyboard() {
       const btn = document.createElement('button');
       const isWide = key === 'ENTER' || key === 'DEL';
       let cls = 'wkey';
-      if (isWide) cls += ' wkey-wide';
+      if (isWide)          cls += ' wkey-wide';
       if (key === 'ENTER') cls += ' wkey-enter';
       if (key === 'DEL')   cls += ' wkey-del';
       btn.className = cls; btn.dataset.key = key;
@@ -357,7 +415,7 @@ function updateKeyboard() {
     const key = btn.dataset.key; if (!key || key === 'ENTER' || key === 'DEL') return;
     const state = wKeyState[key];
     let cls = 'wkey';
-    if (btn.classList.contains('wkey-wide')) cls += ' wkey-wide';
+    if (btn.classList.contains('wkey-wide'))  cls += ' wkey-wide';
     if (btn.classList.contains('wkey-enter')) cls += ' wkey-enter';
     if (btn.classList.contains('wkey-del'))   cls += ' wkey-del';
     if (state) cls += ' ' + state;
@@ -368,16 +426,15 @@ function updateKeyboard() {
 function wHandleVirtualKey(key) {
   if (wGameOver) return;
   if (key === 'DEL' || key === 'BACKSPACE') {
-    if (wCurrentGuess.length > 0) { wCurrentGuess = wCurrentGuess.slice(0, -1); updateGrid(); }
+    if (wCurrentGuess.length > 0) { wCurrentGuess = wCurrentGuess.slice(0, -1); updateGrid(); wSave(); }
   } else if (key === 'ENTER') {
     wSubmit();
   } else if (key.length === 1 && /[a-záéíóöőúüű]/i.test(key)) {
-    if (wCurrentGuess.length < wWordLen) { wCurrentGuess += key.toLowerCase(); updateGrid(); }
+    if (wCurrentGuess.length < wWordLen) { wCurrentGuess += key.toLowerCase(); updateGrid(); wSave(); }
   }
 }
 
 function wHandleKey(e) {
-  if (currentScreen !== 'wordle') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const key = e.key;
   if (key === 'Backspace') { e.preventDefault(); wHandleVirtualKey('BACKSPACE'); }
@@ -387,12 +444,11 @@ function wHandleKey(e) {
 
 let wResizeTimer = null;
 window.addEventListener('resize', () => {
-  if (currentScreen !== 'wordle' || !wloaded) return;
   clearTimeout(wResizeTimer);
   wResizeTimer = setTimeout(() => {
     computeAndApplyLayout();
     buildGrid();
     updateGrid();
-    buildKeyboard();
+    updateKeyboard();
   }, 80);
 });

@@ -1,61 +1,136 @@
-let sbLoaded = false, sbWords = [];
-let sbGrid = [], sbRows = 0, sbCols = 0;
-let sbCipher = {}, sbDecipher = {};
+// ═══════════════════════════════════════════════════════
+//  szambetu.js  —  Szám=Betű rejtvény
+//  - Fix grid: Könnyű 15×15, Normál 20×20, Nehéz 25×25
+//  - Natív telefon billentyűzet (hidden input focus)
+//  - Jobb crossword: minél kevesebb üres hely
+//  - Induláskor: 2 magánhangzó + 2-3 mássalhangzó reveal
+//  - localStorage mentés
+// ═══════════════════════════════════════════════════════
+
+const SB_SAVE_KEY = 'lexikon_szambetu_state';
+
+const HU_VOWELS     = ['a','á','e','é','i','í','o','ó','ö','ő','u','ú','ü','ű'];
+const HU_CONSONANTS = ['b','c','cs','d','dz','dzs','f','g','gy','h','j','k','l','ly','m',
+                       'n','ny','p','r','s','sz','t','ty','v','z','zs'];
+const HU_SIMPLE_CONSONANTS = ['b','c','d','f','g','h','j','k','l','m','n','p','r','s','t','v','z'];
+
+let sbLoaded  = false;
+let sbWords   = [];
+let sbGrid    = [], sbRows = 0, sbCols = 0;
+let sbCipher  = {}, sbDecipher = {};
 let sbGuesses = {};
 let sbSelectedNum = null;
 let sbStartTime = 0, sbMoves = 0;
 let sbPlacedWords = [];
-let sbDifficulty = 'normal';
+let sbDifficulty  = 'normal';
 
-const SB_MAX_DIM = 30;
+// Fixed grid sizes per difficulty
 const SB_MODES = {
-  easy:   { min: 3, max: 7,  label: 'Könnyű', targetWords: 30, poolSize: 400 },
-  normal: { min: 4, max: 10, label: 'Normál', targetWords: 50, poolSize: 600 },
-  hard:   { min: 4, max: 14, label: 'Nehéz',  targetWords: 70, poolSize: 800 },
+  easy:   { dim: 15, label: 'Könnyű', minLen: 3, maxLen: 7  },
+  normal: { dim: 20, label: 'Normál', minLen: 4, maxLen: 10 },
+  hard:   { dim: 25, label: 'Nehéz',  minLen: 4, maxLen: 14 },
 };
-
-function showSzamBetu() {
-  currentScreen = 'szambetu';
-  document.getElementById('screen-main').classList.add('hidden');
-  document.getElementById('screen-games').classList.remove('visible');
-  document.getElementById('screen-wordle').classList.remove('visible');
-  document.getElementById('screen-szambetu').classList.add('visible');
-  document.getElementById('topbar-games-btn').style.display = 'none';
-  window.scrollTo(0, 0);
-  if (typeof wHandleKey !== 'undefined') document.removeEventListener('keydown', wHandleKey);
-  document.addEventListener('keydown', sbHandleKey);
-  if (!sbLoaded) initSzamBetu();
-}
-
-function closeSzamBetu() {
-  currentScreen = 'games';
-  document.getElementById('screen-szambetu').classList.remove('visible');
-  document.getElementById('screen-games').classList.add('visible');
-  document.getElementById('topbar-games-btn').style.display = '';
-  window.scrollTo(0, 0);
-  document.removeEventListener('keydown', sbHandleKey);
-  hideSbWin();
-}
 
 function hideSbWin() {
   const w = document.getElementById('sb-win'); if (w) w.classList.remove('show');
 }
 
+// ── Save / Load ───────────────────────────────────────
+function sbSave() {
+  try {
+    localStorage.setItem(SB_SAVE_KEY, JSON.stringify({
+      sbDifficulty, sbCipher, sbDecipher, sbGuesses,
+      sbGrid, sbRows, sbCols, sbPlacedWords,
+      sbSelectedNum, sbStartTime, sbMoves
+    }));
+  } catch(e) {}
+}
+
+function sbLoadSave() {
+  try {
+    const raw = localStorage.getItem(SB_SAVE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d.sbDecipher || Object.keys(d.sbDecipher).length === 0) return false;
+    sbDifficulty   = d.sbDifficulty   || 'normal';
+    sbCipher       = d.sbCipher       || {};
+    sbDecipher     = d.sbDecipher     || {};
+    sbGuesses      = d.sbGuesses      || {};
+    sbGrid         = d.sbGrid         || [];
+    sbRows         = d.sbRows         || 0;
+    sbCols         = d.sbCols         || 0;
+    sbPlacedWords  = d.sbPlacedWords  || [];
+    sbSelectedNum  = null;
+    sbStartTime    = d.sbStartTime    || Date.now();
+    sbMoves        = d.sbMoves        || 0;
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── Init ─────────────────────────────────────────────
 async function initSzamBetu() {
   document.getElementById('sb-status-text').textContent = 'Szólista betöltése...';
-  if (!loaded) { try { await loadWords(); } catch(e) {} }
+  if (typeof loaded !== 'undefined' && !loaded) {
+    try { await loadWords(); } catch(e) {}
+  }
   sbLoaded = true;
   buildSbDifficultyChips();
-  loadSbWords();
-  startSzamBetu();
+
+  const saved = sbLoadSave();
+  if (saved) {
+    // Restore saved puzzle
+    buildSbDifficultyChips(); // re-highlight correct chip
+    restorePuzzle();
+  } else {
+    loadSbWords();
+    startSzamBetu();
+  }
+}
+
+function restorePuzzle() {
+  if (!sbGrid || sbGrid.length === 0) { loadSbWords(); startSzamBetu(); return; }
+  const mode = SB_MODES[sbDifficulty];
+  const vw = window.innerWidth;
+  const availW = Math.min(vw - 24, 860);
+  const cellSize = Math.max(20, Math.min(40, Math.floor((availW - sbCols) / sbCols)));
+  document.documentElement.style.setProperty('--sb-cell', cellSize + 'px');
+
+  const gridEl = document.getElementById('sb-grid');
+  gridEl.innerHTML = '';
+  gridEl.style.gridTemplateColumns = `repeat(${sbCols}, ${cellSize}px)`;
+  gridEl.style.gridTemplateRows    = `repeat(${sbRows}, ${cellSize}px)`;
+  const fsize    = Math.max(8, Math.floor(cellSize * 0.38));
+  const numFsize = Math.max(7, Math.floor(cellSize * 0.22));
+
+  for (let r = 0; r < sbRows; r++) {
+    for (let c = 0; c < sbCols; c++) {
+      const letter = sbGrid[r][c];
+      const cell = document.createElement('div');
+      if (!letter) {
+        cell.className = 'sb-cell black';
+      } else {
+        const num = sbCipher[letter];
+        cell.className = 'sb-cell letter';
+        cell.dataset.num = num;
+        cell.innerHTML =
+          `<span class="sb-cell-num" style="font-size:${numFsize}px">${num}</span>` +
+          `<span class="sb-cell-letter" style="font-size:${fsize}px"></span>`;
+        cell.addEventListener('click', () => selectNum(num));
+      }
+      gridEl.appendChild(cell);
+    }
+  }
+  buildKeyMap();
+  renderGuesses();
+  updateSbProgress();
 }
 
 function loadSbWords() {
   const mode = SB_MODES[sbDifficulty];
   sbWords = wordList
     .map(e => (typeof e === 'object' ? e.word : e).toLowerCase())
-    .filter(w => w.length >= mode.min && w.length <= mode.max && /^[a-záéíóöőúüű]+$/.test(w));
-  // Shuffle once for variety
+    .filter(w => w.length >= mode.minLen && w.length <= mode.maxLen
+              && /^[a-záéíóöőúüű]+$/.test(w));
   sbWords = shuffle(sbWords);
 }
 
@@ -86,60 +161,73 @@ function startSzamBetu() {
     document.getElementById('sb-status-text').textContent = 'Nincs elérhető szó.'; return;
   }
   document.getElementById('sb-status-text').textContent = 'Generálás...';
-  // Use setTimeout so UI updates before heavy computation
   setTimeout(() => {
-    let puzzle = null;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      puzzle = buildCrossword();
-      if (puzzle && sbPlacedWords.length >= 8) break;
-    }
+    const puzzle = buildCrossword();
     if (!puzzle || sbPlacedWords.length < 4) {
       document.getElementById('sb-status-text').textContent = 'Hiba — próbáld újra.';
       return;
     }
     renderPuzzle(puzzle);
     updateSbProgress();
+    sbSave();
   }, 10);
 }
 
+// ══════════════════════════════════════════════════════
+//  CROSSWORD ENGINE — fix dim × dim grid
+// ══════════════════════════════════════════════════════
 function buildCrossword() {
   const mode = SB_MODES[sbDifficulty];
-  // Take a larger, freshly shuffled pool
-  const pool = shuffle(sbWords.slice()).slice(0, mode.poolSize);
-  if (pool.length < 5) return null;
+  const DIM  = mode.dim;
 
-  // Initialise empty grid
-  const grid = Array.from({ length: SB_MAX_DIM }, () => Array(SB_MAX_DIM).fill(null));
+  // Blank grid (null = empty)
+  let grid = Array.from({ length: DIM }, () => Array(DIM).fill(null));
   const placed = [];
-  const center = Math.floor(SB_MAX_DIM / 2);
+  const usedWords = new Set();
 
-  // First word: longest available, placed horizontally through centre
-  const sortedByLen = [...pool].sort((a, b) => b.length - a.length);
-  const firstWord = sortedByLen[0];
-  const startC = center - Math.floor(firstWord.length / 2);
-  for (let i = 0; i < firstWord.length; i++) grid[center][startC + i] = firstWord[i];
-  placed.push({ word: firstWord, row: center, col: startC, dir: 'H' });
+  // Sort pool by length desc for denser fill
+  const pool = shuffle(sbWords.slice()).sort((a, b) => b.length - a.length);
 
-  // Build lookup: letter → list of {wordIdx, charIdx} in pool
-  // We use the pool directly for fast intersection lookups
-  const used = new Set([firstWord]);
+  // First word: longest, placed horizontally, centered
+  const first = pool[0];
+  usedWords.add(first);
+  const r0 = Math.floor(DIM / 2);
+  const c0 = Math.floor((DIM - first.length) / 2);
+  placeWord(grid, first, r0, c0, 'H');
+  placed.push({ word: first, row: r0, col: c0, dir: 'H' });
 
-  // Multi-pass placement: keep trying until target reached or pool exhausted
+  // Second word: longest possible, placed vertically through centre of first word
+  const secondPool = pool.filter(w => !usedWords.has(w));
+  const midCol = c0 + Math.floor(first.length / 2);
+  for (const w of secondPool) {
+    // Find a letter in w that matches first[midCol - c0]
+    const targetLetter = first[midCol - c0];
+    const wi = w.indexOf(targetLetter);
+    if (wi === -1) continue;
+    const vr = r0 - wi;
+    if (canPlace(grid, w, vr, midCol, 'V', DIM)) {
+      placeWord(grid, w, vr, midCol, 'V');
+      placed.push({ word: w, row: vr, col: midCol, dir: 'V' });
+      usedWords.add(w);
+      break;
+    }
+  }
+
+  // Fill remaining words greedily — many passes
   let changed = true;
-  let passes = 0;
-  const maxPasses = 6;
+  let passes  = 0;
+  const maxPasses = 12;
 
-  while (changed && placed.length < mode.targetWords && passes < maxPasses) {
+  while (changed && passes < maxPasses) {
     changed = false;
     passes++;
-    for (let wi = 0; wi < pool.length && placed.length < mode.targetWords; wi++) {
-      const word = pool[wi];
-      if (used.has(word)) continue;
-      const pl = findBestPlacement(grid, word, placed);
+    for (const word of pool) {
+      if (usedWords.has(word)) continue;
+      const pl = findBestPlacement(grid, word, DIM);
       if (pl) {
         placeWord(grid, word, pl.row, pl.col, pl.dir);
         placed.push({ word, row: pl.row, col: pl.col, dir: pl.dir });
-        used.add(word);
+        usedWords.add(word);
         changed = true;
       }
     }
@@ -147,7 +235,10 @@ function buildCrossword() {
 
   if (placed.length < 4) return null;
   sbPlacedWords = placed;
-  return trimGrid(grid);
+
+  // Trim to content (keep fixed DIM padding of 1 on each side)
+  const result = trimToFixed(grid, DIM);
+  return result;
 }
 
 function placeWord(grid, word, row, col, dir) {
@@ -157,26 +248,24 @@ function placeWord(grid, word, row, col, dir) {
   }
 }
 
-function findBestPlacement(grid, word, placed) {
+function findBestPlacement(grid, word, DIM) {
   const candidates = [];
-  // For each letter in word, find matching cells in grid
   for (let wi = 0; wi < word.length; wi++) {
     const ch = word[wi];
-    // Scan grid for this character
-    for (let r = 1; r < SB_MAX_DIM - 1; r++) {
-      for (let c = 1; c < SB_MAX_DIM - 1; c++) {
+    for (let r = 0; r < DIM; r++) {
+      for (let c = 0; c < DIM; c++) {
         if (grid[r][c] !== ch) continue;
-        // Try to place word horizontally with wi at (r, c)
+        // Try H: word[wi] at (r, c)
         const hc = c - wi;
-        if (canPlace(grid, word, r, hc, 'H')) {
-          const score = scorePlace(grid, word, r, hc, 'H', placed);
-          candidates.push({ row: r, col: hc, dir: 'H', score });
+        if (canPlace(grid, word, r, hc, 'H', DIM)) {
+          candidates.push({ row: r, col: hc, dir: 'H',
+            score: scorePlace(grid, word, r, hc, 'H', DIM) });
         }
-        // Try to place word vertically with wi at (r, c)
+        // Try V: word[wi] at (r, c)
         const vr = r - wi;
-        if (canPlace(grid, word, vr, c, 'V')) {
-          const score = scorePlace(grid, word, vr, c, 'V', placed);
-          candidates.push({ row: vr, col: c, dir: 'V', score });
+        if (canPlace(grid, word, vr, c, 'V', DIM)) {
+          candidates.push({ row: vr, col: c, dir: 'V',
+            score: scorePlace(grid, word, vr, c, 'V', DIM) });
         }
       }
     }
@@ -186,61 +275,81 @@ function findBestPlacement(grid, word, placed) {
   return candidates[0];
 }
 
-function scorePlace(grid, word, row, col, dir, placed) {
+function scorePlace(grid, word, row, col, dir, DIM) {
   let intersections = 0;
+  let filledNeighbours = 0;
   for (let i = 0; i < word.length; i++) {
-    const r = dir === 'H' ? row : row + i;
+    const r = dir === 'H' ? row     : row + i;
     const c = dir === 'H' ? col + i : col;
     if (grid[r][c] === word[i]) intersections++;
+    // Reward placing near already-filled cells (denser grid)
+    const nbrs = [[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+    for (const [nr, nc] of nbrs) {
+      if (nr >= 0 && nr < DIM && nc >= 0 && nc < DIM && grid[nr][nc] !== null) filledNeighbours++;
+    }
   }
-  // Prefer more intersections; prefer positions near centre
-  const centerDist = Math.abs(row - SB_MAX_DIM / 2) + Math.abs(col - SB_MAX_DIM / 2);
-  return intersections * 20 - centerDist * 0.5;
+  const center = DIM / 2;
+  const centerDist = Math.abs(row + word.length/2 - center) + Math.abs(col + word.length/2 - center);
+  return intersections * 30 + filledNeighbours * 2 - centerDist * 0.8;
 }
 
-function canPlace(grid, word, row, col, dir) {
-  // Bounds check (leave 1-cell margin)
-  if (row < 1 || col < 1) return false;
-  if (dir === 'H' && col + word.length > SB_MAX_DIM - 1) return false;
-  if (dir === 'V' && row + word.length > SB_MAX_DIM - 1) return false;
+function canPlace(grid, word, row, col, dir, DIM) {
+  // Boundary check — leave 0-cell margin (we work within full DIM)
+  if (row < 0 || col < 0) return false;
+  if (dir === 'H' && col + word.length > DIM) return false;
+  if (dir === 'V' && row + word.length > DIM) return false;
 
-  const bR = dir === 'H' ? row     : row - 1;
-  const bC = dir === 'H' ? col - 1 : col;
-  const aR = dir === 'H' ? row     : row + word.length;
-  const aC = dir === 'H' ? col + word.length : col;
-  if (grid[bR]?.[bC] !== null && grid[bR]?.[bC] !== undefined) return false;
-  if (grid[aR]?.[aC] !== null && grid[aR]?.[aC] !== undefined) return false;
+  // Cell before word must be empty
+  const preR = dir === 'H' ? row     : row - 1;
+  const preC = dir === 'H' ? col - 1 : col;
+  if (preR >= 0 && preC >= 0 && preR < DIM && preC < DIM) {
+    if (grid[preR][preC] !== null) return false;
+  }
+  // Cell after word must be empty
+  const aftR = dir === 'H' ? row               : row + word.length;
+  const aftC = dir === 'H' ? col + word.length  : col;
+  if (aftR >= 0 && aftC >= 0 && aftR < DIM && aftC < DIM) {
+    if (grid[aftR][aftC] !== null) return false;
+  }
 
   let hasIntersection = false;
+
   for (let i = 0; i < word.length; i++) {
-    const r = dir === 'H' ? row : row + i;
+    const r = dir === 'H' ? row     : row + i;
     const c = dir === 'H' ? col + i : col;
     const existing = grid[r]?.[c];
 
     if (existing !== null && existing !== undefined) {
-      // Must match
       if (existing !== word[i]) return false;
       hasIntersection = true;
     } else {
-      const s1r = dir === 'H' ? r - 1 : r;
-      const s1c = dir === 'H' ? c     : c - 1;
-      const s2r = dir === 'H' ? r + 1 : r;
-      const s2c = dir === 'H' ? c     : c + 1;
-      if (grid[s1r]?.[s1c] !== null && grid[s1r]?.[s1c] !== undefined) return false;
-      if (grid[s2r]?.[s2c] !== null && grid[s2r]?.[s2c] !== undefined) return false;
+      // Perpendicular neighbour conflict: only 1 empty cell gap allowed
+      if (dir === 'H') {
+        if ((grid[r-1]?.[c] !== null && grid[r-1]?.[c] !== undefined) ||
+            (grid[r+1]?.[c] !== null && grid[r+1]?.[c] !== undefined)) return false;
+      } else {
+        if ((grid[r]?.[c-1] !== null && grid[r]?.[c-1] !== undefined) ||
+            (grid[r]?.[c+1] !== null && grid[r]?.[c+1] !== undefined)) return false;
+      }
     }
   }
   return hasIntersection;
 }
 
-function trimGrid(grid) {
-  let minR = SB_MAX_DIM, maxR = 0, minC = SB_MAX_DIM, maxC = 0;
-  for (let r = 0; r < SB_MAX_DIM; r++)
-    for (let c = 0; c < SB_MAX_DIM; c++)
+function trimToFixed(grid, DIM) {
+  // Find bounding box of content
+  let minR = DIM, maxR = 0, minC = DIM, maxC = 0;
+  for (let r = 0; r < DIM; r++)
+    for (let c = 0; c < DIM; c++)
       if (grid[r][c] !== null) {
         minR = Math.min(minR, r); maxR = Math.max(maxR, r);
         minC = Math.min(minC, c); maxC = Math.max(maxC, c);
       }
+
+  // Add 1-cell border
+  minR = Math.max(0, minR - 1); maxR = Math.min(DIM - 1, maxR + 1);
+  minC = Math.max(0, minC - 1); maxC = Math.min(DIM - 1, maxC + 1);
+
   const result = [];
   for (let r = minR; r <= maxR; r++) {
     const row = [];
@@ -255,6 +364,7 @@ function trimGrid(grid) {
   return result;
 }
 
+// ── Cipher & revealed starters ───────────────────────
 function assignCipher(grid) {
   const letters = new Set();
   for (const row of grid) for (const cell of row) if (cell) letters.add(cell);
@@ -262,20 +372,28 @@ function assignCipher(grid) {
   sbCipher = {}; sbDecipher = {};
   arr.forEach((letter, i) => { sbCipher[letter] = i + 1; sbDecipher[i + 1] = letter; });
   sbGuesses = {};
-  const revealCount = Math.max(1, Math.floor(arr.length * 0.10));
-  shuffle([...arr]).slice(0, revealCount).forEach(l => {
+
+  // Reveal 2 vowels + 2-3 consonants that actually appear in the puzzle
+  const puzzleVowels     = arr.filter(l => HU_VOWELS.includes(l));
+  const puzzleConsonants = arr.filter(l => !HU_VOWELS.includes(l));
+
+  const revealVowels = shuffle(puzzleVowels).slice(0, Math.min(2, puzzleVowels.length));
+  const consonantCount = Math.random() < 0.5 ? 2 : 3;
+  const revealConsonants = shuffle(puzzleConsonants).slice(0, Math.min(consonantCount, puzzleConsonants.length));
+
+  [...revealVowels, ...revealConsonants].forEach(l => {
     sbGuesses[sbCipher[l]] = l.toUpperCase();
   });
 }
 
+// ── Render ────────────────────────────────────────────
 function renderPuzzle(grid) {
   assignCipher(grid);
   sbGrid = grid;
 
   const vw = window.innerWidth;
-  const appPad = vw <= 400 ? 20 : (vw <= 600 ? 20 : 32);
-  const availW = Math.min(vw - appPad, 860);
-  const cellSize = Math.max(24, Math.min(40, Math.floor((availW - sbCols) / sbCols)));
+  const availW = Math.min(vw - 24, 860);
+  const cellSize = Math.max(20, Math.min(40, Math.floor((availW - sbCols) / sbCols)));
   document.documentElement.style.setProperty('--sb-cell', cellSize + 'px');
 
   const gridEl = document.getElementById('sb-grid');
@@ -283,7 +401,7 @@ function renderPuzzle(grid) {
   gridEl.style.gridTemplateColumns = `repeat(${sbCols}, ${cellSize}px)`;
   gridEl.style.gridTemplateRows    = `repeat(${sbRows}, ${cellSize}px)`;
 
-  const fsize = Math.max(8, Math.floor(cellSize * 0.38));
+  const fsize    = Math.max(8, Math.floor(cellSize * 0.38));
   const numFsize = Math.max(7, Math.floor(cellSize * 0.22));
 
   for (let r = 0; r < sbRows; r++) {
@@ -324,14 +442,14 @@ function buildKeyMap() {
 
 function renderGuesses() {
   Object.keys(sbDecipher).map(Number).forEach(num => {
-    const guessed = sbGuesses[num];
-    const correct = sbDecipher[num];
+    const guessed  = sbGuesses[num];
+    const correct  = sbDecipher[num];
     const isSolved = guessed && guessed.toUpperCase() === correct.toUpperCase();
 
     document.querySelectorAll(`.sb-cell[data-num="${num}"] .sb-cell-letter`).forEach(el => {
       el.textContent = guessed || '';
       el.parentElement.classList.toggle('revealed', isSolved);
-      el.parentElement.classList.toggle('guessed', !!guessed && !isSolved);
+      el.parentElement.classList.toggle('guessed',  !!guessed && !isSolved);
     });
 
     const keyItem = document.querySelector(`.sb-key-item[data-num="${num}"]`);
@@ -344,7 +462,8 @@ function renderGuesses() {
 
   document.querySelectorAll('.sb-cell.letter').forEach(cell => {
     const num = parseInt(cell.dataset.num);
-    cell.classList.toggle('selected', num === sbSelectedNum);
+    cell.classList.toggle('selected',  num === sbSelectedNum);
+    cell.classList.toggle('same-num',  num === sbSelectedNum);
   });
 
   const hint = document.getElementById('sb-input-hint');
@@ -353,23 +472,30 @@ function renderGuesses() {
     : 'Kattints egy számra a kiválasztáshoz';
 }
 
+// ── Selection & input ─────────────────────────────────
 function selectNum(num) {
   const g = sbGuesses[num];
-  if (g && g.toUpperCase() === sbDecipher[num].toUpperCase()) return;
+  if (g && g.toUpperCase() === sbDecipher[num].toUpperCase()) return; // already solved
   sbSelectedNum = sbSelectedNum === num ? null : num;
   renderGuesses();
+  // Focus hidden input to trigger native keyboard on mobile
+  if (sbSelectedNum !== null) {
+    const hi = document.getElementById('sb-hidden-input');
+    if (hi) { hi.value = ''; hi.focus(); }
+  }
 }
 
 function sbEnterLetter(letter) {
   if (sbSelectedNum === null) return;
-  const num = sbSelectedNum;
+  const num     = sbSelectedNum;
   const correct = sbDecipher[num];
-  const g = sbGuesses[num];
+  const g       = sbGuesses[num];
   if (g && g.toUpperCase() === correct.toUpperCase()) return;
   sbGuesses[num] = letter.toUpperCase();
   sbMoves++;
   renderGuesses();
   updateSbProgress();
+  sbSave();
   if (letter.toUpperCase() !== correct.toUpperCase()) {
     document.querySelectorAll(`.sb-cell[data-num="${num}"]`).forEach(cell => {
       cell.classList.add('wrong');
@@ -378,6 +504,10 @@ function sbEnterLetter(letter) {
   } else {
     const next = findNextUnsolved(num);
     sbSelectedNum = next;
+    if (next !== null) {
+      const hi = document.getElementById('sb-hidden-input');
+      if (hi) { hi.value = ''; hi.focus(); }
+    }
     renderGuesses();
     if (checkSbWin()) setTimeout(showSbWin, 400);
   }
@@ -385,7 +515,7 @@ function sbEnterLetter(letter) {
 
 function findNextUnsolved(current) {
   const nums = Object.keys(sbDecipher).map(Number).sort((a, b) => a - b);
-  const idx = nums.indexOf(current);
+  const idx  = nums.indexOf(current);
   for (let i = 1; i <= nums.length; i++) {
     const next = nums[(idx + i) % nums.length];
     const g = sbGuesses[next];
@@ -400,8 +530,10 @@ function sbBackspace() {
   if (g && g.toUpperCase() === sbDecipher[sbSelectedNum].toUpperCase()) return;
   sbGuesses[sbSelectedNum] = '';
   renderGuesses();
+  sbSave();
 }
 
+// ── Helpers ───────────────────────────────────────────
 function sbHint() {
   const unsolved = Object.keys(sbDecipher).map(Number).filter(n => {
     const g = sbGuesses[n]; return !g || g.toUpperCase() !== sbDecipher[n].toUpperCase();
@@ -409,16 +541,18 @@ function sbHint() {
   if (!unsolved.length) { showToast('Minden megfejtve!'); return; }
   const num = unsolved[Math.floor(Math.random() * unsolved.length)];
   sbGuesses[num] = sbDecipher[num].toUpperCase();
-  sbSelectedNum = findNextUnsolved(num);
-  renderGuesses(); updateSbProgress();
+  sbSelectedNum  = findNextUnsolved(num);
+  renderGuesses(); updateSbProgress(); sbSave();
   showToast('💡 ' + num + ' = ' + sbDecipher[num].toUpperCase());
   if (checkSbWin()) setTimeout(showSbWin, 500);
 }
 
 function sbSolveAll() {
-  Object.keys(sbDecipher).forEach(num => { sbGuesses[parseInt(num)] = sbDecipher[num].toUpperCase(); });
+  Object.keys(sbDecipher).forEach(num => {
+    sbGuesses[parseInt(num)] = sbDecipher[num].toUpperCase();
+  });
   sbSelectedNum = null;
-  renderGuesses(); updateSbProgress();
+  renderGuesses(); updateSbProgress(); sbSave();
   setTimeout(showSbWin, 300);
 }
 
@@ -430,7 +564,7 @@ function checkSbWin() {
 }
 
 function updateSbProgress() {
-  const total = Object.keys(sbDecipher).length;
+  const total  = Object.keys(sbDecipher).length;
   const solved = Object.keys(sbDecipher).filter(num => {
     const g = sbGuesses[parseInt(num)];
     return g && g.toUpperCase() === sbDecipher[num].toUpperCase();
@@ -448,10 +582,12 @@ function showSbWin() {
   document.getElementById('sb-win-stat').textContent =
     `${sbMoves} lépés · ${timeStr} · ${SB_MODES[sbDifficulty].label} · ${sbPlacedWords.length} szó`;
   document.getElementById('sb-win').classList.add('show');
+  // Clear save so next visit starts fresh
+  try { localStorage.removeItem(SB_SAVE_KEY); } catch(e) {}
 }
 
+// ── Keyboard (physical + native mobile) ──────────────
 function sbHandleKey(e) {
-  if (currentScreen !== 'szambetu') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const key = e.key;
   if (key === 'Backspace') { e.preventDefault(); sbBackspace(); }
@@ -460,7 +596,9 @@ function sbHandleKey(e) {
     e.preventDefault(); sbEnterLetter(key);
   }
 }
+document.addEventListener('keydown', sbHandleKey);
 
+// ── Utility ───────────────────────────────────────────
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {

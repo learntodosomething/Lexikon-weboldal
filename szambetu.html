@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lexikon — Szám = Betű</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/szambetu.css">
+<style>
+  /* Always visible on own page */
+  #screen-szambetu {
+    position: relative;
+    opacity: 1;
+    transform: none;
+    pointer-events: all;
+    min-height: 100vh;
+  }
+
+  /* Hidden native-keyboard trigger input */
+  #sb-hidden-input {
+    position: fixed;
+    top: -200px;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px; /* prevent iOS zoom */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<!-- Hidden input that triggers the native mobile keyboard -->
+<input
+  id="sb-hidden-input"
+  type="text"
+  inputmode="text"
+  autocomplete="off"
+  autocorrect="off"
+  autocapitalize="off"
+  spellcheck="false"
+  aria-hidden="true"
+  tabindex="-1"
+>
+
+<nav class="topbar" id="topbar">
+  <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
+    <div class="topbar-logo-icon">✦</div>
+    <div class="topbar-logo-text">
+      <span class="topbar-logo-main">Lexikon</span>
+      <span class="topbar-logo-sub">Magyar Szójátékok</span>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <a href="games.html" class="topbar-games-btn" style="text-decoration:none;">
+    🎮 <span>Játékok</span>
+  </a>
+</nav>
+
+<div id="screen-szambetu" class="visible">
+  <div class="sb-app">
+
+    <div class="sb-header">
+      <a href="games.html" class="sb-back-btn" style="text-decoration:none;">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 12L6 8l4-4"/></svg>
+        Vissza
+      </a>
+      <div class="sb-title-wrap">
+        <span class="sb-eyebrow">Lexikon · Rejtvény</span>
+        <span class="sb-title">Szám = Betű</span>
+      </div>
+      <button class="sb-new-btn" onclick="startSzamBetu()">
+        Új rejtvény
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M13 3v5h-5"/></svg>
+      </button>
+    </div>
+
+    <div class="sb-diff-row">
+      <span class="sb-diff-label">Nehézség:</span>
+      <div class="sb-diff-chips" id="sb-difficulty-chips"></div>
+    </div>
+
+    <div class="sb-status-row">
+      <div class="sb-progress-bar"><div class="sb-progress-fill" id="sb-progress-fill"></div></div>
+      <div class="sb-status-text" id="sb-status-text">Betöltés...</div>
+    </div>
+
+    <div class="sb-helpers">
+      <button class="sb-help-btn sb-help-btn-hint" onclick="sbHint()">
+        💡 Segítség (random betű)
+      </button>
+      <button class="sb-help-btn sb-help-btn-solve" onclick="sbSolveAll()">
+        🏳 Szabad a gazda
+      </button>
+    </div>
+
+    <div class="sb-grid-wrap">
+      <div class="sb-grid" id="sb-grid"></div>
+    </div>
+
+    <div class="sb-key-section">
+      <div class="sb-key-label">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
+        Betűkulcs — kattints egy számra, majd gépelj
+      </div>
+      <div class="sb-key-grid" id="sb-key-grid"></div>
+    </div>
+
+    <div class="sb-input-hint" id="sb-input-hint">Kattints egy számra a kiválasztáshoz</div>
+
+  </div>
+</div>
+
+<div class="sb-win" id="sb-win">
+  <div class="sb-win-card">
+    <span class="sb-win-emoji">🏆</span>
+    <div class="sb-win-title">Megfejtve!</div>
+    <div class="sb-win-stat" id="sb-win-stat"></div>
+    <button class="sb-win-btn" onclick="startSzamBetu()">↻ &nbsp;Új rejtvény</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/nav.js"></script>
+<script>
+  // Standalone shims
+  let currentScreen = 'szambetu';
+  let loaded = false;
+  let wordList = [];
+
+  function closeSzamBetu() { location.href = 'games.html'; }
+  function showSzamBetu() {}
+
+  const FALLBACK_URL = 'https://gist.githubusercontent.com/Konstantinusz/f9517357e46fa827c3736031ac8d01c7/raw/fc98429a6357d1c4fcc644e1b70c2431bd046cf0/magyar-szavak.txt';
+  const RAW_BASE = 'https://raw.githubusercontent.com/laszlonemeth/magyarispell/master/szotar/';
+  const MODULE_URLS = {
+    biologia: RAW_BASE+'biologia/fonev.1', fizika: RAW_BASE+'fizika/fonev.1',
+    foldrajz: RAW_BASE+'foldrajz/fonev.1', informatika: RAW_BASE+'informatika/fonev.1',
+    kemia: RAW_BASE+'kemia/fonev.1', matematika: RAW_BASE+'matematika/fonev.1',
+    sport: RAW_BASE+'sport/fonev.1', zene: RAW_BASE+'zene/fonev.1',
+    idegen: RAW_BASE+'idegen/fonev.1', ifjusagi: RAW_BASE+'ifjusagi/fonev.1',
+    regies: RAW_BASE+'regies/fonev.1',
+  };
+  async function tryFetch(url) {
+    try { const r = await fetch(url); if (!r.ok) return null; return await r.text(); }
+    catch { return null; }
+  }
+  async function loadWords() {
+    if (loaded) return;
+    let mainText = await tryFetch(FALLBACK_URL);
+    if (!mainText) throw new Error('Szólista hiba');
+    const rawWords = mainText.split('\n').map(l => {
+      const slash = l.indexOf('/');
+      return (slash > -1 ? l.slice(0, slash) : l).trim().toLowerCase();
+    }).filter(w => w.length > 0 && !w.startsWith('#') && /^[a-záéíóöőúüű]+$/i.test(w));
+    const wordSet = new Set(rawWords);
+    const wordModuleMap = {};
+    wordSet.forEach(w => { wordModuleMap[w] = ['alap']; });
+    const fetchPromises = Object.entries(MODULE_URLS).map(async ([modId, url]) => {
+      const text = await tryFetch(url); if (!text) return;
+      text.split('\n').forEach(line => {
+        const word = line.trim().split(/\s+/)[0].toLowerCase();
+        if (!word || word.startsWith('#') || !/^[a-záéíóöőúüű]+$/i.test(word)) return;
+        if (wordModuleMap[word]) { if (!wordModuleMap[word].includes(modId)) wordModuleMap[word].push(modId); }
+        else { wordModuleMap[word] = [modId]; wordSet.add(word); }
+      });
+    });
+    await Promise.allSettled(fetchPromises);
+    wordList = [...wordSet].map(w => ({ word: w, modules: wordModuleMap[w] || ['alap'] }));
+    loaded = true;
+  }
+</script>
+<script src="js/szambetu.js"></script>
+<script>
+  // ── Native keyboard bridge ──────────────────────────
+  // The hidden input receives keystrokes from the native mobile keyboard
+  // and forwards them to the game logic.
+  const sbHiddenInput = document.getElementById('sb-hidden-input');
+
+  sbHiddenInput.addEventListener('input', (e) => {
+    // Read whatever was typed (handles compose keys, diacritics, etc.)
+    const val = sbHiddenInput.value;
+    if (!val) return;
+    // Take last character typed
+    const letter = val[val.length - 1];
+    sbHiddenInput.value = ''; // reset immediately
+    if (/[a-záéíóöőúüűA-ZÁÉÍÓÖŐÚÜŰ]/.test(letter)) {
+      sbEnterLetter(letter);
+    }
+  });
+
+  // Backspace on native keyboard
+  sbHiddenInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      sbBackspace();
+    }
+    if (e.key === 'Escape') {
+      sbSelectedNum = null;
+      renderGuesses();
+      sbHiddenInput.blur();
+    }
+  });
+
+  // Re-focus hidden input if user taps elsewhere on the puzzle area
+  // but only on touch devices
+  document.getElementById('sb-grid').addEventListener('touchstart', () => {
+    if (sbSelectedNum !== null) {
+      setTimeout(() => { sbHiddenInput.value = ''; sbHiddenInput.focus(); }, 50);
+    }
+  }, { passive: true });
+
+  // Start
+  initSzamBetu();
+</script>
+</body>
+</html>
