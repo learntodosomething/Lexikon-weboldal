@@ -10,43 +10,123 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/search.css">
 <style>
-  .confirm-overlay {
-    position: fixed; inset: 0; z-index: 900;
-    background: rgba(8,11,18,0.82); backdrop-filter: blur(10px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.22s ease;
-  }
-  .confirm-overlay.show { opacity: 1; pointer-events: all; }
-  .confirm-card {
-    background: #1e2436; border: 1px solid rgba(255,255,255,0.14);
-    border-radius: var(--radius-lg); padding: 28px 32px; text-align: center;
-    max-width: 320px; width: 88%; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    animation: fadeUp 0.25s ease;
-  }
-  .confirm-icon { font-size: 32px; margin-bottom: 12px; display: block; }
-  .confirm-message {
-    font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 400;
-    color: var(--text-primary); margin-bottom: 22px; line-height: 1.35;
-  }
-  .confirm-buttons { display: flex; gap: 10px; justify-content: center; }
-  .confirm-btn {
-    padding: 10px 22px; border-radius: var(--radius); font-family: 'DM Mono', monospace;
-    font-size: 12px; letter-spacing: 0.07em; cursor: pointer; transition: var(--transition);
-    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-  }
-  .confirm-btn-ok {
-    background: rgba(255,80,80,0.15); border: 1px solid rgba(255,80,80,0.35); color: rgba(255,130,130,0.9);
-  }
-  .confirm-btn-ok:hover { background: rgba(255,80,80,0.28); border-color: rgba(255,80,80,0.6); }
-  .confirm-btn-cancel {
-    background: var(--bg-card); border: 1px solid var(--glass-border); color: var(--text-secondary);
-  }
-  .confirm-btn-cancel:hover { border-color: var(--accent); color: var(--accent); }
+/* ── Confirm overlay ─────────────────────────────────── */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(8,11,18,0.82); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.confirm-overlay.show { opacity: 1; pointer-events: all; }
+.confirm-card {
+  background: #1e2436; border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-lg); padding: 28px 32px; text-align: center;
+  max-width: 320px; width: 88%; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: fadeUp 0.25s ease;
+}
+.confirm-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+.confirm-message {
+  font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 400;
+  color: var(--text-primary); margin-bottom: 22px; line-height: 1.35;
+}
+.confirm-buttons { display: flex; gap: 10px; justify-content: center; }
+.confirm-btn {
+  padding: 10px 22px; border-radius: var(--radius); font-family: 'DM Mono', monospace;
+  font-size: 12px; letter-spacing: 0.07em; cursor: pointer; transition: var(--transition);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.confirm-btn-ok {
+  background: rgba(255,80,80,0.15); border: 1px solid rgba(255,80,80,0.35); color: rgba(255,130,130,0.9);
+}
+.confirm-btn-ok:hover { background: rgba(255,80,80,0.28); border-color: rgba(255,80,80,0.6); }
+.confirm-btn-cancel {
+  background: var(--bg-card); border: 1px solid var(--glass-border); color: var(--text-secondary);
+}
+.confirm-btn-cancel:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
 <div class="noise"></div>
+
+  <button class="br-fab" onclick="brOpenModal()" aria-label="Visszajelzés küldése">
+    <span class="br-fab-icon">🐛</span>
+    <span class="br-fab-label">Visszajelzés</span>
+  </button>
+
+<div class="br-modal-overlay" id="br-modal-overlay" onclick="brOverlayClick(event)">
+  <div class="br-modal" id="br-modal" role="dialog" aria-modal="true" aria-label="Visszajelzés küldése">
+    <div class="br-modal-handle"></div>
+
+    <div class="br-modal-header">
+      <div class="br-modal-title-wrap">
+        <span class="br-modal-icon">🐛</span>
+        <div>
+          <div class="br-modal-title">Visszajelzés</div>
+          <div class="br-modal-sub">HIBÁK · ÖTLETEK · ÉSZREVÉTELEK</div>
+        </div>
+      </div>
+      <button class="br-modal-close" onclick="brCloseModal()" aria-label="Bezárás">✕</button>
+    </div>
+
+    <!-- Form -->
+    <div id="br-form-wrap">
+      <div class="br-modal-body">
+        <div class="br-type-row" id="br-type-row">
+          <button class="br-type-btn active" data-type="hiba"  onclick="brSetType(this,'hiba')">🐛 Hiba</button>
+          <button class="br-type-btn"        data-type="otlet" onclick="brSetType(this,'otlet')">💡 Ötlet</button>
+          <button class="br-type-btn"        data-type="egyeb" onclick="brSetType(this,'egyeb')">💬 Egyéb</button>
+        </div>
+
+        <div class="br-field-group">
+          <label class="br-label" for="br-title">Rövid leírás</label>
+          <input
+            type="text" id="br-title"
+            class="br-input"
+            placeholder="pl. A keresés nem talál eredményt..."
+            autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
+            maxlength="120"
+            inputmode="text"
+          >
+        </div>
+
+        <div class="br-field-group">
+          <label class="br-label" for="br-detail">
+            Részletek <span class="br-optional">(opcionális)</span>
+          </label>
+          <textarea
+            id="br-detail"
+            class="br-textarea"
+            placeholder="Lépések a hiba reprodukálásához, böngésző neve, egyéb megjegyzések..."
+            rows="4"
+            maxlength="1000"
+            inputmode="text"
+          ></textarea>
+          <div class="br-charcount" id="br-charcount">0 / 1000</div>
+        </div>
+      </div>
+
+      <div class="br-modal-footer">
+        <div class="br-footer-btns">
+          <button class="br-cancel-btn" onclick="brCloseModal()">Mégsem</button>
+          <button class="br-submit-btn" id="br-submit-btn" onclick="brSubmit()">
+            <span id="br-submit-label">Küldés</span>
+            <span>→</span>
+          </button>
+        </div>
+        <div class="br-privacy">Az üzenet a Formspree-n keresztül érkezik meg, e-mail cím megadása nélkül.</div>
+      </div>
+    </div>
+
+    <!-- Success state (hidden until sent) -->
+    <div class="br-success" id="br-success">
+      <div class="br-success-icon">✅</div>
+      <div class="br-success-title">Megkaptam!</div>
+      <div class="br-success-sub">Köszönöm a visszajelzésed — sokat segít.</div>
+      <button class="br-success-close-btn" onclick="brCloseModal()">Bezárás</button>
+    </div>
+  </div>
+</div>
 
 <nav class="topbar" id="topbar">
   <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
@@ -61,6 +141,7 @@
     🎮 <span>Játékok</span>
   </a>
 </nav>
+
 
 <div class="app">
 
@@ -180,5 +261,6 @@
 
 <script src="js/nav.js"></script>
 <script src="js/search.js"></script>
+<script src="js/bugreport.js"></script>
 </body>
 </html>

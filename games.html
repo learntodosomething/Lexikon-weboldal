@@ -13,6 +13,99 @@
 <body>
 <div class="noise"></div>
 
+<button class="br-fab" onclick="brOpenModal()" aria-label="Visszajelzés küldése">
+  <span class="br-fab-icon">🐛</span>
+  <span class="br-fab-label">Visszajelzés</span>
+</button>
+
+<div class="br-modal-overlay" id="br-modal-overlay" onclick="brOverlayClick(event)">
+  <div class="br-modal" id="br-modal" role="dialog" aria-modal="true" aria-label="Visszajelzés küldése">
+    <div class="br-modal-handle"></div>
+
+    <div class="br-modal-header">
+      <div class="br-modal-title-wrap">
+        <span class="br-modal-icon">🐛</span>
+        <div>
+          <div class="br-modal-title">Visszajelzés</div>
+          <div class="br-modal-sub">HIBÁK · ÖTLETEK · ÉSZREVÉTELEK</div>
+        </div>
+      </div>
+      <button class="br-modal-close" onclick="brCloseModal()" aria-label="Bezárás">✕</button>
+    </div>
+
+    <!-- Form -->
+    <div id="br-form-wrap">
+      <div class="br-modal-body">
+        <div class="br-type-row" id="br-type-row">
+          <button class="br-type-btn active" data-type="hiba"  onclick="brSetType(this,'hiba')">🐛 Hiba</button>
+          <button class="br-type-btn"        data-type="otlet" onclick="brSetType(this,'otlet')">💡 Ötlet</button>
+          <button class="br-type-btn"        data-type="egyeb" onclick="brSetType(this,'egyeb')">💬 Egyéb</button>
+        </div>
+
+        <div class="br-field-group">
+          <label class="br-label" for="br-title">Rövid leírás</label>
+          <input
+            type="text" id="br-title"
+            class="br-input"
+            placeholder="pl. A keresés nem talál eredményt..."
+            autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
+            maxlength="120"
+            inputmode="text"
+          >
+        </div>
+
+        <div class="br-field-group">
+          <label class="br-label" for="br-detail">
+            Részletek <span class="br-optional">(opcionális)</span>
+          </label>
+          <textarea
+            id="br-detail"
+            class="br-textarea"
+            placeholder="Lépések a hiba reprodukálásához, böngésző neve, egyéb megjegyzések..."
+            rows="4"
+            maxlength="1000"
+            inputmode="text"
+          ></textarea>
+          <div class="br-charcount" id="br-charcount">0 / 1000</div>
+        </div>
+      </div>
+
+      <div class="br-modal-footer">
+        <div class="br-footer-btns">
+          <button class="br-cancel-btn" onclick="brCloseModal()">Mégsem</button>
+          <button class="br-submit-btn" id="br-submit-btn" onclick="brSubmit()">
+            <span id="br-submit-label">Küldés</span>
+            <span>→</span>
+          </button>
+        </div>
+        <div class="br-privacy">Az üzenet a Formspree-n keresztül érkezik meg, e-mail cím megadása nélkül.</div>
+      </div>
+    </div>
+
+    <!-- Success state (hidden until sent) -->
+    <div class="br-success" id="br-success">
+      <div class="br-success-icon">✅</div>
+      <div class="br-success-title">Megkaptam!</div>
+      <div class="br-success-sub">Köszönöm a visszajelzésed — sokat segít.</div>
+      <button class="br-success-close-btn" onclick="brCloseModal()">Bezárás</button>
+    </div>
+  </div>
+</div>
+
+<nav class="topbar" id="topbar">
+  <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
+    <div class="topbar-logo-icon">✦</div>
+    <div class="topbar-logo-text">
+      <span class="topbar-logo-main">Lexikon</span>
+      <span class="topbar-logo-sub">Magyar Szójátékok</span>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <a href="games.html" class="topbar-games-btn">
+    🎮 <span>Játékok</span>
+  </a>
+</nav>
+
 <nav class="topbar" id="topbar">
   <div class="topbar-logo" onclick="location.href='index.html'" title="Lexikon — Főoldal">
     <div class="topbar-logo-icon">✦</div>
@@ -74,5 +167,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/nav.js"></script>
+<script src="js/bugreport.js"></script>
 </body>
 </html>
